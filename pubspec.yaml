@@ -1,0 +1,28 @@
+name: front_erp_aromair
+description: "Aromair Flutter project."
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: ^3.8.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  dio: ^5.9.0
+  get: ^4.7.2
+  shared_preferences: ^2.5.3
+  intl: ^0.19.0
+  dropdown_button2: ^2.3.9
+
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/assets/images/

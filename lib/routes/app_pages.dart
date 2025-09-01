@@ -1,0 +1,71 @@
+import 'package:front_erp_aromair/view/screens/admin/alertes_screen.dart';
+import 'package:front_erp_aromair/view/screens/admin/aprobations_screen.dart';
+import 'package:front_erp_aromair/view/screens/admin/clients_screen.dart';
+import 'package:front_erp_aromair/view/screens/admin/diffuseurs_screen.dart';
+import 'package:front_erp_aromair/view/screens/admin/interventions/interventions_screen.dart';
+import 'package:front_erp_aromair/view/screens/admin/rapports_screen.dart';
+import 'package:front_erp_aromair/view/screens/admin/reclamations_screen.dart';
+import 'package:front_erp_aromair/view/screens/admin/utilisateurs_screen.dart';
+import 'package:get/get.dart';
+import '../view/screens/login_screen.dart';
+import '../view/screens/technicien/tech_dashboard.dart';
+import '../view/screens/admin/overview_screen.dart';
+import '../viewmodel/controllers/login_controller.dart';
+import '../data/repositories/auth_repository.dart';
+import '../data/services/auth_service.dart';
+import 'app_routes.dart';
+
+class AppPages {
+  static final pages = [
+    GetPage(
+      name: AppRoutes.login,
+      page: () => LoginScreen(),
+      binding: BindingsBuilder(() {
+        Get.put(LoginController(AuthRepository(AuthService())));
+      }),
+    ),
+    // Admin routes
+    GetPage(
+      name: AppRoutes.adminOverview,
+      page: () => const OverviewScreen(),
+    ),
+    GetPage(
+      name: AppRoutes.adminInterventions,
+      page: () => const InterventionsScreen(),
+    ),
+    GetPage(
+      name: AppRoutes.adminClients,
+      page: () => const ClientsScreen(),
+    ),
+    GetPage(
+      name: AppRoutes.adminDiffuseurs,
+      page: () => const DiffuseursScreen(),
+    ),
+    GetPage(
+      name: AppRoutes.adminAlertes,
+      page: () => const AlertesScreen(),
+    ),
+    GetPage(
+      name: AppRoutes.adminReclamations,
+      page: () => const ReclamationsScreen(),
+    ),
+    GetPage(
+      name: AppRoutes.adminUtilisateurs,
+      page: () => const UtilisateursScreen(),
+    ),
+    GetPage(
+      name: AppRoutes.adminRapports,
+      page: () => const RapportsScreen(),
+    ),
+    GetPage(
+      name: AppRoutes.adminAprobations,
+      page: () => const AprobationsScreen(),
+    ),
+    // Technicien routes
+    GetPage(
+      name: AppRoutes.techHome,
+      page: () => const TechDashboard(),
+    ),
+    // Add your home pages for each role...
+  ];
+}
