@@ -148,6 +148,7 @@ class InterventionDetailScreen extends StatelessWidget {
                                           child: SingleChildScrollView(
                                             scrollDirection: Axis.vertical,
                                             child: DataTable(
+                                              showCheckboxColumn: false, // << cache la colonne de checkbox
                                               columnSpacing: 28,
                                               headingRowHeight: 42,
                                               dataRowMinHeight: 44,
@@ -160,18 +161,19 @@ class InterventionDetailScreen extends StatelessWidget {
                                                 DataColumn(label: _Head("Type carte")),
                                                 DataColumn(label: _Head("Emplacement")),
                                               ],
-                                              rows: d.diffuseurs
-                                                  .map(
-                                                    (r) => DataRow(
-                                                      cells: [
-                                                        DataCell(Text(r.cab)),
-                                                        DataCell(Text(r.modeleDiffuseur)),
-                                                        DataCell(Text(r.typeDiffuseur)),
-                                                        DataCell(Text(r.emplacement)),
-                                                      ],
-                                                    ),
-                                                  )
-                                                  .toList(),
+                                              rows: d.diffuseurs.map((r) {
+                                                return DataRow(
+                                                  onSelectChanged: (_) {
+                                                    Get.toNamed('/interventions/${d.id}/client-diffuseurs/${r.id}');
+                                                  },
+                                                  cells: [
+                                                    DataCell(Text(r.cab)),
+                                                    DataCell(Text(r.modeleDiffuseur)),
+                                                    DataCell(Text(r.typeDiffuseur)),
+                                                    DataCell(Text(r.emplacement)),
+                                                  ],
+                                                );
+                                              }).toList(),
                                             ),
                                           ),
                                         ),
@@ -198,25 +200,17 @@ class InterventionDetailScreen extends StatelessWidget {
                                                       const Color(0xFF5DB7A1),
                                                     ),
                                                     columns: const [
-                                                      DataColumn(label: _Head("CAB")),
-                                                      DataColumn(label: _Head("Type diffuseur")),
+                                                      DataColumn(label: _Head("Date")),
+                                                      DataColumn(label: _Head("Problème")),
+                                                      DataColumn(label: _Head("Cause")),
                                                       DataColumn(label: _Head("État résolution")),
-                                                      DataColumn(label: _Head("Voir")),
                                                     ],
-                                                    rows: d.alertes
-                                                        .map(
-                                                          (a) => DataRow(
-                                                            cells: [
-                                                              DataCell(Text(a.cab)),
-                                                              DataCell(Text(a.typeDiffuseur)),
-                                                              DataCell(Text(a.etatResolution)),
-                                                              const DataCell(
-                                                                Icon(Icons.remove_red_eye_outlined),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        )
-                                                        .toList(),
+                                                    rows: d.alertes.map((a) => DataRow(cells: [
+                                                      DataCell(Text(a.date)),
+                                                      DataCell(Text(a.probleme ?? "-")),
+                                                      DataCell(Text(a.cause ?? "-")),
+                                                      DataCell(Text(a.etatResolution)),
+                                                    ])).toList(),
                                                   ),
                                                 ),
                                         ),

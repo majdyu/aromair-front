@@ -6,7 +6,6 @@ import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:front_erp_aromair/view/widgets/admin_drawer.dart';
 import 'package:front_erp_aromair/viewmodel/admin/interventions/interventions_controller.dart';
 import 'package:front_erp_aromair/view/screens/admin/interventions/add_intervention_dialog.dart';
-import 'package:front_erp_aromair/view/screens/admin/interventions/intervention_detail_screen.dart';
 
 class InterventionsScreen extends StatelessWidget {
   const InterventionsScreen({super.key});
@@ -221,37 +220,31 @@ class InterventionsScreen extends StatelessWidget {
                                             final isSelected =
                                                 c.selectedRowId.value == it.id;
                                             return DataRow(
-                                                    selected: isSelected,
-                                                    onSelectChanged: (sel) {
-                                                      if (sel == true) {
-                                                        c.selectedRowId.value = it.id;
-                                                        Get.to(() => InterventionDetailScreen(interventionId: it.id))
-                                                            ?.then((_) => c.clearSelection());
-                                                      }
+                                                    // ne pas binder "selected" au state, on navigue à chaque clic
+                                                    onSelectChanged: (_) async {
+                                                      // optionnel: marquer comme sélectionné visuellement si tu veux
+                                                      c.selectedRowId.value = it.id;
+
+                                                      await Get.toNamed('/interventions/${it.id}');
+
+                                                      // au retour, on nettoie la sélection
+                                                      c.selectedRowId.value = null;
                                                     },
-                                              cells: [
-                                                DataCell(Text(it.client)),
-                                                DataCell(Text(it.technicien)),
-                                                DataCell(
-                                                  Text(
-                                                    it.derniereIntervention != null
-                                                        ? _fmt(it.derniereIntervention!)
-                                                        : '',
-                                                  ),
-                                                ),
-                                                DataCell(Text(_prettyStatut(it.statutRaw))),
-                                                DataCell(
-                                                  IconButton(
-                                                    tooltip: "Supprimer",
-                                                    icon: const Icon(
-                                                      Icons.remove_circle,
-                                                      color: Colors.redAccent,
-                                                    ),
-                                                    onPressed: () =>
-                                                        c.deleteIntervention(it.id),
-                                                  ),
-                                                ),
-                                              ],
+                                                    cells: [
+                                                      DataCell(Text(it.client)),
+                                                      DataCell(Text(it.technicien)),
+                                                      DataCell(Text(
+                                                        it.derniereIntervention != null ? _fmt(it.derniereIntervention!) : '',
+                                                      )),
+                                                      DataCell(Text(_prettyStatut(it.statutRaw))),
+                                                      DataCell(
+                                                        IconButton(
+                                                          tooltip: "Supprimer",
+                                                          icon: const Icon(Icons.remove_circle, color: Colors.redAccent),
+                                                          onPressed: () => c.deleteIntervention(it.id),
+                                                        ),
+                                                      ),
+                                                    ],
                                             );
                                           }).toList(),
                                         ),

@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:front_erp_aromair/core/net/dio_client.dart';
 import 'package:front_erp_aromair/data/models/create_intervention_request.dart';
+import 'package:front_erp_aromair/data/models/etat_client_diffuseur.dart';
 import 'package:front_erp_aromair/data/models/option_item.dart';
 import 'package:front_erp_aromair/utils/storage_helper.dart';
 import 'package:front_erp_aromair/data/models/intervention_item.dart';
@@ -140,6 +141,37 @@ class InterventionsService {
     await _dio.patch(
       "interventions/updateMeta/$id",
       data: body,
+      options: Options(headers: {if (token != null) 'Authorization': 'Bearer $token'}),
+    );
+  }
+
+  //------------------------------------------------------------
+
+  Future<EtatClientDiffuseur> etatClientDiffuseur(int interventionId, int clientDiffuseurId) async {
+    final token = (await StorageHelper.getUser())?['token'];
+    final resp = await _dio.get(
+      "interventions/$interventionId/client-diffuseurs/$clientDiffuseurId",
+      options: Options(headers: { if (token != null) 'Authorization': 'Bearer $token' }),
+    );
+    // resp.data est déjà un Map<String,dynamic>
+    return EtatClientDiffuseur.fromJson(Map<String, dynamic>.from(resp.data));
+  }
+
+  Future<void> patchIcd(
+    int interventionId,
+    int clientDiffuseurId, {
+    bool? qualiteBonne,
+    bool? fuite,
+    bool? enMarche,
+  }) async {
+    final token = (await StorageHelper.getUser())?['token'];
+    await _dio.patch(
+      'interventions/$interventionId/client-diffuseurs/$clientDiffuseurId',
+      data: {
+        'qualiteBonne': qualiteBonne,
+        'fuite': fuite,
+        'enMarche': enMarche,
+      },
       options: Options(headers: {if (token != null) 'Authorization': 'Bearer $token'}),
     );
   }

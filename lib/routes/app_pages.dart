@@ -1,7 +1,10 @@
+import 'package:flutter/material.dart';
 import 'package:front_erp_aromair/view/screens/admin/alertes_screen.dart';
 import 'package:front_erp_aromair/view/screens/admin/aprobations_screen.dart';
 import 'package:front_erp_aromair/view/screens/admin/clients_screen.dart';
 import 'package:front_erp_aromair/view/screens/admin/diffuseurs_screen.dart';
+import 'package:front_erp_aromair/view/screens/admin/interventions/etat_clientdiffuseur_screen.dart';
+import 'package:front_erp_aromair/view/screens/admin/interventions/intervention_detail_screen.dart';
 import 'package:front_erp_aromair/view/screens/admin/interventions/interventions_screen.dart';
 import 'package:front_erp_aromair/view/screens/admin/rapports_screen.dart';
 import 'package:front_erp_aromair/view/screens/admin/reclamations_screen.dart';
@@ -29,10 +32,38 @@ class AppPages {
       name: AppRoutes.adminOverview,
       page: () => const OverviewScreen(),
     ),
+
     GetPage(
       name: AppRoutes.adminInterventions,
       page: () => const InterventionsScreen(),
     ),
+    // --- Détail intervention ---
+    // /interventions/123
+      GetPage(
+        name: AppRoutes.interventionDetail,
+        page: () {
+          final id = int.tryParse(Get.parameters['id'] ?? '');
+          if (id == null) {
+            return const Scaffold(body: Center(child: Text('Intervention ID invalide')));
+          }
+          return InterventionDetailScreen(interventionId: id);
+        },
+      ),
+    // --- Etat ClientDiffuseur dans une intervention ---
+    // /interventions/123/client-diffuseurs/456
+      GetPage(
+        name: AppRoutes.etatClientDiffuseur,
+        page: () {
+          final id = int.tryParse(Get.parameters['id'] ?? '');
+          final cdId = int.tryParse(Get.parameters['cdId'] ?? '');
+          if (id == null || cdId == null) {
+            return const Scaffold(body: Center(child: Text('Paramètres URL invalides')));
+          }
+          return EtatClientDiffuseurScreen(interventionId: id, clientDiffuseurId: cdId);
+        },
+      ),
+    
+    
     GetPage(
       name: AppRoutes.adminClients,
       page: () => const ClientsScreen(),

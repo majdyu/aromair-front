@@ -1,4 +1,5 @@
 import 'package:front_erp_aromair/data/models/create_intervention_request.dart';
+import 'package:front_erp_aromair/data/models/etat_client_diffuseur.dart';
 import 'package:front_erp_aromair/data/models/intervention_detail.dart';
 import 'package:front_erp_aromair/data/models/intervention_item.dart';
 import 'package:front_erp_aromair/data/models/option_item.dart';
@@ -49,4 +50,29 @@ class InterventionsRepository {
       userId: userId,
     );
   }
+
+  //---------------------------------------------------------------
+   Future<EtatClientDiffuseur> etatClientDiffuseur(
+    int interventionId,
+    int clientDiffuseurId,
+  ) {
+    return _service.etatClientDiffuseur(interventionId, clientDiffuseurId);
+  }
+
+  Future<void> patchIcd(
+    int interventionId,
+    int clientDiffuseurId, {
+    bool? qualiteBonne,
+    bool? fuite,
+    bool? enMarche,
+  }) {
+    return _service.patchIcd(
+      interventionId,
+      clientDiffuseurId,
+      qualiteBonne: qualiteBonne,
+      fuite: fuite,
+      enMarche: enMarche,
+    );
+  }
+  
 }

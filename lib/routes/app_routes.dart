@@ -2,7 +2,13 @@ class AppRoutes {
   static const login = '/login';
   // Admin routes
   static const adminOverview = '/admin-overview';
+
   static const adminInterventions = '/admin-interventions';
+    // Détails intervention (paramétrée)
+  static const interventionDetail = '/interventions/:id';
+  // État clientDiffuseur dans une intervention (paramétrée)
+  static const etatClientDiffuseur = '/interventions/:id/client-diffuseurs/:cdId';
+  
   static const adminClients = '/admin-clients';
   static const adminDiffuseurs = '/admin-diffuseurs';
   static const adminAlertes = '/admin-alertes';
@@ -10,6 +16,7 @@ class AppRoutes {
   static const adminUtilisateurs = '/admin-utilisateurs';
   static const adminRapports = '/admin-rapports';
   static const adminAprobations = '/admin-aprobations';
+
   // Technicien routes
   static const techHome = '/techHome';
   // Production routes

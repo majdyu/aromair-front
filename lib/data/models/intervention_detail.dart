@@ -133,24 +133,26 @@ class ClientDiffuseurRow {
 
 class AlerteRow {
   final int id;
-  final String cab;
-  final String typeDiffuseur;
+  final String date;        // "dd/MM/yyyy" (ou ce que renvoie l'API)
+  final String? probleme;
+  final String? cause;
   final String etatResolution;
 
   AlerteRow({
     required this.id,
-    required this.cab,
-    required this.typeDiffuseur,
+    required this.date,
+    required this.probleme,
+    required this.cause,
     required this.etatResolution,
   });
 
-  factory AlerteRow.fromJson(Map<String, dynamic> j) {
-    return AlerteRow(
-      id: j['id'] as int,
-      cab: (j['cab'] as String?) ?? '-',
-      typeDiffuseur:
-          (j['typeDiffuseur'] as String?) ?? (j['typeCarte'] as String?) ?? '-',
-      etatResolution: (j['etatResolution'] as String?) ?? '-',
-    );
-  }
+  factory AlerteRow.fromJson(Map<String, dynamic> j) => AlerteRow(
+        id: (j['id'] as num).toInt(),
+        date: (j['date'] ?? '-').toString(),
+        probleme: j['probleme']?.toString(),
+        cause: j['cause']?.toString(),
+        etatResolution: (j['etatResolution'] ?? '-').toString(),
+      );
+      
 }
+
