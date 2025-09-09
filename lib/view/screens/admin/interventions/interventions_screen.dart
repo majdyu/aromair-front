@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:front_erp_aromair/view/screens/admin/interventions/intervention_detail_screen.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
@@ -217,34 +218,29 @@ class InterventionsScreen extends StatelessWidget {
                                             DataColumn(label: _HeaderCell("Supprimer")),
                                           ],
                                           rows: c.items.map((it) {
-                                            final isSelected =
-                                                c.selectedRowId.value == it.id;
                                             return DataRow(
-                                                    // ne pas binder "selected" au state, on navigue à chaque clic
-                                                    onSelectChanged: (_) async {
-                                                      // optionnel: marquer comme sélectionné visuellement si tu veux
-                                                      c.selectedRowId.value = it.id;
-
-                                                      await Get.toNamed('/interventions/${it.id}');
-
-                                                      // au retour, on nettoie la sélection
-                                                      c.selectedRowId.value = null;
-                                                    },
-                                                    cells: [
-                                                      DataCell(Text(it.client)),
-                                                      DataCell(Text(it.technicien)),
-                                                      DataCell(Text(
-                                                        it.derniereIntervention != null ? _fmt(it.derniereIntervention!) : '',
-                                                      )),
-                                                      DataCell(Text(_prettyStatut(it.statutRaw))),
-                                                      DataCell(
-                                                        IconButton(
-                                                          tooltip: "Supprimer",
-                                                          icon: const Icon(Icons.remove_circle, color: Colors.redAccent),
-                                                          onPressed: () => c.deleteIntervention(it.id),
-                                                        ),
-                                                      ),
-                                                    ],
+                                              onSelectChanged: (_) async {
+                                                c.selectedRowId.value = it.id;
+                                                await Get.to(() => InterventionDetailScreen(
+                                                  interventionId: it.id,
+                                                ))?.then((_) => c.clearSelection());
+                                                c.selectedRowId.value = null;
+                                              },
+                                              cells: [
+                                                DataCell(Text(it.client)),
+                                                DataCell(Text(it.technicien)),
+                                                DataCell(Text(
+                                                  it.derniereIntervention != null ? _fmt(it.derniereIntervention!) : '',
+                                                )),
+                                                DataCell(Text(_prettyStatut(it.statutRaw))),
+                                                DataCell(
+                                                  IconButton(
+                                                    tooltip: "Supprimer",
+                                                    icon: const Icon(Icons.remove_circle, color: Colors.redAccent),
+                                                    onPressed: () => c.deleteIntervention(it.id),
+                                                  ),
+                                                ),
+                                              ],
                                             );
                                           }).toList(),
                                         ),
@@ -352,8 +348,6 @@ String _prettyStatut(String? s) {
     case 'EN_RETARD': return 'En retard';
     case 'ANNULEE': return 'Annulée';
     case 'NON_ACCOMPLIES': return 'Non accomplies';
-    default: return s; // ne surtout pas renvoyer "Tout Statut" ici
+    default: return s;
   }
 }
-
-

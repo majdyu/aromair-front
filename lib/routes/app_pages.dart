@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:front_erp_aromair/view/screens/admin/alerte_detail_screen.dart';
 import 'package:front_erp_aromair/view/screens/admin/alertes_screen.dart';
 import 'package:front_erp_aromair/view/screens/admin/aprobations_screen.dart';
+import 'package:front_erp_aromair/view/screens/admin/bouteille_detail_screen.dart';
 import 'package:front_erp_aromair/view/screens/admin/clients_screen.dart';
 import 'package:front_erp_aromair/view/screens/admin/diffuseurs_screen.dart';
 import 'package:front_erp_aromair/view/screens/admin/interventions/etat_clientdiffuseur_screen.dart';
@@ -62,7 +64,23 @@ class AppPages {
           return EtatClientDiffuseurScreen(interventionId: id, clientDiffuseurId: cdId);
         },
       ),
-    
+
+      GetPage(
+      name: AppRoutes.alerteDetail,
+      page: () {
+        final id = int.tryParse(Get.parameters['id'] ?? '');
+        return AlerteDetailScreen(alerteId: id ?? 0);
+      },
+      transition: Transition.rightToLeft,
+    ),
+
+    GetPage(
+      name: '/bouteilles/:id',
+      page: () {
+        final id = int.parse(Get.parameters['id']!);
+        return BouteilleDetailScreen(bouteilleId: id); // ton écran détail
+      },
+    ),
     
     GetPage(
       name: AppRoutes.adminClients,

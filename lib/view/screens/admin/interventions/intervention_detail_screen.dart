@@ -14,10 +14,25 @@ class InterventionDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tag = 'inter_$interventionId';
+
     return GetX<InterventionDetailController>(
-      init: InterventionDetailController(interventionId),
+      init: Get.put(InterventionDetailController(interventionId), tag: tag),
+      tag: tag,
       builder: (c) {
         final d = c.detail.value;
+
+        // Hydrate le champ remarque quand le DTO arrive (sans écraser en mode édition)
+        if (d != null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!c.isEditingRemark.value) {
+              final incoming = (d.remarque ?? '').trim();
+              if (c.remarkCtrl.text != incoming) {
+                c.remarkCtrl.text = incoming;
+              }
+            }
+          });
+        }
 
         return Scaffold(
           drawer: const AdminDrawer(),
@@ -81,56 +96,51 @@ class InterventionDetailScreen extends StatelessWidget {
                                                     runSpacing: 8,
                                                     children: [
                                                       _statutChip(d.statut),
-                                                      _payChip(d.estPayementObligatoire
-                                                          ? "Payement obligatoire"
-                                                          : "Payement non obligatoire"),
+                                                      _payChip(
+                                                        d.estPayementObligatoire
+                                                            ? "Payement obligatoire"
+                                                            : "Payement non obligatoire",
+                                                      ),
                                                     ],
                                                   ),
                                                 ],
                                               ),
                                             ),
 
-                                            // Colonne droite : remarque + actions
+                                            // Colonne droite : remarque (inline editable) + actions
                                             Expanded(
                                               child: Column(
                                                 crossAxisAlignment: CrossAxisAlignment.start,
                                                 children: [
-                                                  const Text(
-                                                    "Remarque / Règlement",
-                                                    style: TextStyle(fontWeight: FontWeight.w600),
-                                                  ),
-                                                  const SizedBox(height: 8),
-                                                  Container(
-                                                    padding: const EdgeInsets.all(12),
-                                                    decoration: BoxDecoration(
-                                                      color: Colors.white,
-                                                      borderRadius: BorderRadius.circular(12),
-                                                      border: Border.all(color: Colors.black12),
-                                                    ),
-                                                    child: Text(
-                                                      (d.remarque?.isNotEmpty ?? false) ? d.remarque! : "-",
-                                                      style: const TextStyle(height: 1.3),
-                                                    ),
-                                                  ),
+                                                  _remarqueWidget(c),
                                                   const SizedBox(height: 10),
                                                   Wrap(
                                                     spacing: 8,
                                                     runSpacing: 8,
                                                     children: [
                                                       FilledButton.icon(
-                                                        onPressed: c.detail.value == null ? null : () async {
-                                                          final ok = await showWorkToDoDialog(context, c.detail.value!);
-                                                          if (ok == true) {
-                                                            await c.fetch(); // ⟵ recharge les données après sauvegarde
-                                                          }
-                                                        },
+                                                        onPressed: c.detail.value == null
+                                                            ? null
+                                                            : () async {
+                                                                final ok = await showWorkToDoDialog(
+                                                                  context,
+                                                                  c.detail.value!,
+                                                                );
+                                                                if (ok == true) {
+                                                                  await c.fetch(); // recharge après sauvegarde des TAFs
+                                                                }
+                                                              },
                                                         icon: const Icon(Icons.list_alt),
                                                         label: const Text("Travail à faire"),
                                                       ),
-                                                      _chipDisabled(Icons.picture_as_pdf,
-                                                          d.titreFicheMaintenance ?? "Fiche maintenance"),
                                                       _chipDisabled(
-                                                          Icons.photo_library_outlined, "Médias (bientôt)"),
+                                                        Icons.picture_as_pdf,
+                                                        d.titreFicheMaintenance ?? "Fiche maintenance",
+                                                      ),
+                                                      _chipDisabled(
+                                                        Icons.photo_library_outlined,
+                                                        "Médias (bientôt)",
+                                                      ),
                                                     ],
                                                   ),
                                                 ],
@@ -148,13 +158,14 @@ class InterventionDetailScreen extends StatelessWidget {
                                           child: SingleChildScrollView(
                                             scrollDirection: Axis.vertical,
                                             child: DataTable(
-                                              showCheckboxColumn: false, // << cache la colonne de checkbox
+                                              showCheckboxColumn: false,
                                               columnSpacing: 28,
                                               headingRowHeight: 42,
                                               dataRowMinHeight: 44,
                                               dataRowMaxHeight: 56,
-                                              headingRowColor:
-                                                  MaterialStateProperty.all(const Color(0xFF5DB7A1)),
+                                              headingRowColor: MaterialStateProperty.all(
+                                                const Color(0xFF5DB7A1),
+                                              ),
                                               columns: const [
                                                 DataColumn(label: _Head("CAB")),
                                                 DataColumn(label: _Head("Modèle")),
@@ -164,7 +175,9 @@ class InterventionDetailScreen extends StatelessWidget {
                                               rows: d.diffuseurs.map((r) {
                                                 return DataRow(
                                                   onSelectChanged: (_) {
-                                                    Get.toNamed('/interventions/${d.id}/client-diffuseurs/${r.id}');
+                                                    Get.toNamed(
+                                                      '/interventions/${d.id}/client-diffuseurs/${r.id}',
+                                                    );
                                                   },
                                                   cells: [
                                                     DataCell(Text(r.cab)),
@@ -192,6 +205,7 @@ class InterventionDetailScreen extends StatelessWidget {
                                               : SingleChildScrollView(
                                                   scrollDirection: Axis.vertical,
                                                   child: DataTable(
+                                                    showCheckboxColumn: false,
                                                     columnSpacing: 28,
                                                     headingRowHeight: 42,
                                                     dataRowMinHeight: 44,
@@ -205,12 +219,17 @@ class InterventionDetailScreen extends StatelessWidget {
                                                       DataColumn(label: _Head("Cause")),
                                                       DataColumn(label: _Head("État résolution")),
                                                     ],
-                                                    rows: d.alertes.map((a) => DataRow(cells: [
-                                                      DataCell(Text(a.date)),
-                                                      DataCell(Text(a.probleme ?? "-")),
-                                                      DataCell(Text(a.cause ?? "-")),
-                                                      DataCell(Text(a.etatResolution)),
-                                                    ])).toList(),
+                                                    rows: d.alertes.map((a) {
+                                                      return DataRow(
+                                                        onSelectChanged: (_) => Get.toNamed('/alertes/${a.id}'),
+                                                        cells: [
+                                                          DataCell(Text(a.date)),
+                                                          DataCell(Text(a.probleme ?? '-')),
+                                                          DataCell(Text(a.cause ?? '-')),
+                                                          DataCell(Text(a.etatResolution)),
+                                                        ],
+                                                      );
+                                                    }).toList(),
                                                   ),
                                                 ),
                                         ),
@@ -227,8 +246,123 @@ class InterventionDetailScreen extends StatelessWidget {
     );
   }
 
-  // ---------- Helpers UI ----------
+  // ---------- Widget Remarque (inline editable) ----------
+  Widget _remarqueWidget(InterventionDetailController c) {
+    String _serverValue() => (c.detail.value?.remarque ?? '').trim();
 
+    void _cancelEdit() {
+      // Revenir à la valeur DB et sortir du mode édition
+      c.remarkCtrl.text = _serverValue();
+      c.isEditingRemark.value = false;
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              "Remarque / Règlement",
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(width: 6),
+            // Icône "modifier" visible uniquement en lecture
+            Obx(() => !c.isEditingRemark.value
+                ? IconButton(
+                    tooltip: 'Modifier',
+                    icon: const Icon(Icons.edit_outlined, size: 18),
+                    onPressed: c.startEditRemark,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  )
+                : const SizedBox.shrink()),
+          ],
+        ),
+        const SizedBox(height: 8),
+
+        // Lecture ou édition
+        Obx(() => c.isEditingRemark.value
+            ? SizedBox(
+                width: 420,
+                child: Focus(
+                  onKey: (node, event) {
+                    // ESC pour annuler
+                    if (event.logicalKey.keyLabel == 'Escape') {
+                      _cancelEdit();
+                      return KeyEventResult.handled;
+                    }
+                    return KeyEventResult.ignored;
+                  },
+                  child: TextField(
+                    controller: c.remarkCtrl,
+                    autofocus: true,
+                    minLines: 1,
+                    maxLines: 4,
+                    onSubmitted: (_) => c.submitRemark(),
+                    decoration: InputDecoration(
+                      hintText: 'Saisir puis Entrée pour enregistrer',
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      suffixIcon: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Annuler
+                          IconButton(
+                            tooltip: 'Annuler (Échap)',
+                            icon: const Icon(Icons.close),
+                            onPressed: c.isSavingRemark.value ? null : _cancelEdit,
+                          ),
+                          // Enregistrer
+                          c.isSavingRemark.value
+                              ? const Padding(
+                                  padding: EdgeInsets.all(10),
+                                  child: SizedBox(
+                                    width: 18,
+                                    height: 18,
+                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                  ),
+                                )
+                              : IconButton(
+                                  tooltip: 'Enregistrer (Entrée)',
+                                  icon: const Icon(Icons.check),
+                                  onPressed: c.submitRemark,
+                                ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              )
+            : InkWell(
+                onTap: c.startEditRemark,
+                borderRadius: BorderRadius.circular(10),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.black12),
+                  ),
+                  child: Text(
+                    (() {
+                      final t = c.remarkCtrl.text.trim();
+                      return t.isEmpty ? '-' : t;
+                    })(),
+                    style: const TextStyle(height: 1.3),
+                  ),
+                ),
+              )),
+      ],
+    );
+  }
+
+  // ---------- Helpers UI ----------
   Widget _sectionTitle(String t) => Row(
         children: [
           Container(
@@ -272,7 +406,7 @@ class InterventionDetailScreen extends StatelessWidget {
   static Widget _chipDisabled(IconData i, String label) => Chip(
         avatar: Icon(i, size: 18),
         label: Text(label),
-        backgroundColor: const Color(0xFFEFE7F6),
+        backgroundColor: const Color(0xFFF7F7F7),
         side: BorderSide.none,
       );
 

@@ -188,6 +188,7 @@ class ProgrammeEtat {
 }
 
 class BouteilleEtat {
+  final int? id; 
   final String? type;
   final String? parfum;
   final int? qteInitiale;
@@ -195,6 +196,7 @@ class BouteilleEtat {
   final int? qteExistante;
 
   BouteilleEtat({
+    required this.id,   
     required this.type,
     required this.parfum,
     required this.qteInitiale,
@@ -208,6 +210,7 @@ class BouteilleEtat {
   factory BouteilleEtat.fromJson(Map<String, dynamic> j) {
     final exist = (j['qteExistante'] ?? j['qteLaisse']) as num?;
     return BouteilleEtat(
+      id: (j['id'] as num?)?.toInt(), 
       type: j['type']?.toString(),
       parfum: j['parfum']?.toString(),
       qteInitiale: (j['qteInitiale'] as num?)?.toInt(),
@@ -217,6 +220,7 @@ class BouteilleEtat {
   }
 
   Map<String, dynamic> toJson() => {
+        'id': id,              
         'type': type,
         'parfum': parfum,
         'qteInitiale': qteInitiale,
@@ -227,12 +231,14 @@ class BouteilleEtat {
 
 /// Spécifique à cet écran (évite la collision avec AlerteRow)
 class AlerteEtat {
+  final int id;   
   final String date; // ex: "16/07/2025"
   final String? probleme;
   final String? cause;
   final String etatResolution;
 
   AlerteEtat({
+    required this.id,
     required this.date,
     required this.probleme,
     required this.cause,
@@ -247,6 +253,7 @@ class AlerteEtat {
     }
 
     return AlerteEtat(
+      id: (j['id'] as num).toInt(), 
       date: (j['date'] ?? "-").toString(),
       probleme: j['probleme']?.toString(),
       cause: j['cause']?.toString(),
@@ -255,6 +262,7 @@ class AlerteEtat {
   }
 
   Map<String, dynamic> toJson() => {
+        'id': id,   
         'date': date,
         'probleme': probleme,
         'cause': cause,

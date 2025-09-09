@@ -8,6 +8,10 @@ class AppRoutes {
   static const interventionDetail = '/interventions/:id';
   // État clientDiffuseur dans une intervention (paramétrée)
   static const etatClientDiffuseur = '/interventions/:id/client-diffuseurs/:cdId';
+  // Détails alerte 
+  static const alerteDetail = '/alertes/:id';
+  // Détails bouteille
+  static const bouteilleDetail = '/bouteilles/:id';
   
   static const adminClients = '/admin-clients';
   static const adminDiffuseurs = '/admin-diffuseurs';

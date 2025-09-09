@@ -18,8 +18,10 @@ class EtatClientDiffuseurScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tag = 'cd_${interventionId}_$clientDiffuseurId';
     return GetX<EtatClientDiffuseurController>(
-      init: EtatClientDiffuseurController(interventionId, clientDiffuseurId),
+      init: Get.put(EtatClientDiffuseurController(interventionId, clientDiffuseurId), tag: tag),
+      tag: tag,
       builder: (c) {
         final data = c.dto.value;
 
@@ -122,9 +124,48 @@ class EtatClientDiffuseurScreen extends StatelessWidget {
                                                   padding: EdgeInsets.all(16),
                                                   child: Text("Aucune bouteille reliée."),
                                                 )
-                                              : _bouteilleTable(data.bouteille!),
+                                              : SingleChildScrollView(
+                                                  scrollDirection: Axis.vertical,
+                                                  child: DataTable(
+                                                    showCheckboxColumn: false,
+                                                    columnSpacing: 28,
+                                                    headingRowHeight: 42,
+                                                    dataRowMinHeight: 50,
+                                                    dataRowMaxHeight: 60,
+                                                    headingRowColor:
+                                                        MaterialStateProperty.all(const Color(0xFF5DB7A1)),
+                                                    columns: const [
+                                                      DataColumn(label: _Head("Type")),
+                                                      DataColumn(label: _Head("Quantité initiale")),
+                                                      DataColumn(label: _Head("Quantité prévu")),
+                                                      DataColumn(label: _Head("Quantité laissée")),
+                                                      DataColumn(label: _Head("Parfum")),
+                                                    ],
+                                                    rows: [
+                                                      DataRow(
+                                                        onSelectChanged: (_) {
+                                                          if (data.bouteille?.id != null) {
+                                                            Get.toNamed('/bouteilles/${data.bouteille!.id}');
+                                                          } else {
+                                                            Get.snackbar("Indisponible",
+                                                                "Cette bouteille n’a pas d’identifiant.");
+                                                          }
+                                                        },
+                                                        cells: [
+                                                          DataCell(Text(data.bouteille!.type ?? "-")),
+                                                          DataCell(Text(
+                                                              data.bouteille!.qteInitiale?.toString() ?? "-")),
+                                                          DataCell(
+                                                              Text(data.bouteille!.qtePrevu?.toString() ?? "-")),
+                                                          DataCell(
+                                                              Text(data.bouteille!.qteExistante?.toString() ?? "-")),
+                                                          DataCell(Text(data.bouteille!.parfum ?? "-")),
+                                                        ],
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
                                         ),
-
                                         const SizedBox(height: 16),
 
                                         // ---------- Alertes ----------
@@ -163,8 +204,15 @@ class EtatClientDiffuseurScreen extends StatelessWidget {
     required bool? fuite,
     required bool? enMarche,
   }) {
-    String qLabel(bool? v) => (v ?? true) ? "Bonne" : "Mauvaise"; // défaut = Bonne
-    String yn(bool? v) => (v ?? true) ? "Oui" : "Non"; // défaut = Oui
+    String qLabel(bool? v) {
+      if (v == null) return "-";
+      return v ? "Bonne" : "Mauvaise";
+    }
+
+    String yn(bool? v) {
+      if (v == null) return "-";
+      return v ? "Oui" : "Non";
+    }
 
     Widget line(String k, String v) => Padding(
           padding: const EdgeInsets.only(bottom: 6),
@@ -237,7 +285,7 @@ class EtatClientDiffuseurScreen extends StatelessWidget {
     String plage() {
       String _hm(String? t) {
         if (t == null) return "-";
-        final parts = t.split(':'); // ex: "09:24:00"
+        final parts = t.split(':');
         if (parts.length < 2) return "-";
         final h = int.tryParse(parts[0]) ?? 0;
         final m = int.tryParse(parts[1]) ?? 0;
@@ -291,7 +339,7 @@ class EtatClientDiffuseurScreen extends StatelessWidget {
             _td(b.type ?? "-"),
             _td(_ml(b.qteInitiale)),
             _td(_ml(b.qtePrevu)),
-            _td(_ml(b.qteLaisse)), // alias sur qteExistante
+            _td(_ml(b.qteLaisse)),
             _td(b.parfum ?? "-"),
           ],
         ),
@@ -316,6 +364,7 @@ class EtatClientDiffuseurScreen extends StatelessWidget {
 
   static Widget _alertesTable(List<AlerteEtat> rows) {
     return DataTable(
+      showCheckboxColumn: false,
       columnSpacing: 28,
       headingRowColor: MaterialStateProperty.all(const Color(0xFF5DB7A1)),
       columns: const [
@@ -324,14 +373,15 @@ class EtatClientDiffuseurScreen extends StatelessWidget {
         DataColumn(label: _Head("Cause")),
         DataColumn(label: _Head("Etat résolution")),
       ],
-      rows: rows
-          .map((a) => DataRow(cells: [
-                DataCell(Text(a.date)),
-                DataCell(Text(a.probleme ?? "-")),
-                DataCell(Text(a.cause ?? "-")),
-                DataCell(Text(a.etatResolution)),
-              ]))
-          .toList(),
+      rows: rows.map((a) => DataRow(
+        onSelectChanged: (_) => Get.toNamed('/alertes/${a.id}'),
+        cells: [
+          DataCell(Text(a.date)),
+          DataCell(Text(a.probleme ?? '-')),
+          DataCell(Text(a.cause ?? '-')),
+          DataCell(Text(a.etatResolution)),
+        ],
+      )).toList(),
     );
   }
 }
