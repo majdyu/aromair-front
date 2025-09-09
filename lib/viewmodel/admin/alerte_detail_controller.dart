@@ -70,19 +70,20 @@ class AlerteDetailController extends GetxController {
     }
   }
 
-  /// Navigation vers le client (adapter si tu ajoutes un `clientId` dans le DTO)
+  /// Navigation vers la fiche client depuis une alerte
   void goToClient() {
     final current = dto.value;
     if (current == null) return;
 
-    // Si tu as ajouté un clientId côté backend/DTO
-    if (current.clientId != null) {
-      Get.toNamed('/clients/${current.clientId}');
+    final id = current.clientId;
+    if (id != null) {
+      Get.toNamed('/clients/$id');
       return;
     }
 
-    // Sinon fallback: ouvre la liste des clients avec un filtre temporaire via arguments (pas global)
-    Get.toNamed('/admin-clients', arguments: {'q': current.client});
+    // Fallback : ouvre la liste clients avec un filtre temporaire
+    final q = (current.client).trim();
+    Get.toNamed('/admin-clients', arguments: {'q': q});
   }
 
   @override

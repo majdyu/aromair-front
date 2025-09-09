@@ -3,6 +3,7 @@ import 'package:front_erp_aromair/view/screens/admin/alerte_detail_screen.dart';
 import 'package:front_erp_aromair/view/screens/admin/alertes_screen.dart';
 import 'package:front_erp_aromair/view/screens/admin/aprobations_screen.dart';
 import 'package:front_erp_aromair/view/screens/admin/bouteille_detail_screen.dart';
+import 'package:front_erp_aromair/view/screens/admin/client_detail_screen.dart';
 import 'package:front_erp_aromair/view/screens/admin/clients_screen.dart';
 import 'package:front_erp_aromair/view/screens/admin/diffuseurs_screen.dart';
 import 'package:front_erp_aromair/view/screens/admin/interventions/etat_clientdiffuseur_screen.dart';
@@ -79,6 +80,14 @@ class AppPages {
       page: () {
         final id = int.parse(Get.parameters['id']!);
         return BouteilleDetailScreen(bouteilleId: id); // ton écran détail
+      },
+    ),
+
+    GetPage(
+      name: '/clients/:id',
+      page: () {
+        final id = int.parse(Get.parameters['id']!);
+        return ClientDetailScreen(clientId: id);
       },
     ),
     
