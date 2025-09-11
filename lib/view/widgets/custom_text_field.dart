@@ -4,14 +4,34 @@ class CustomTextField extends StatefulWidget {
   final String hint;
   final IconData icon;
   final bool obscureText;
-  final Function(String) onChanged;
+
+  /// Callbacks
+  final ValueChanged<String>? onChanged;
+  final ValueChanged<String>? onSubmitted;
+
+  /// Contrôle du clavier / focus
+  final TextInputAction? textInputAction;
+  final FocusNode? focusNode;
+
+  /// Contrôle externe du champ
+  final TextEditingController? controller;
+  final TextInputType? keyboardType;
+
+  /// Personnalisation optionnelle du padding
+  final EdgeInsetsGeometry? contentPadding;
 
   const CustomTextField({
     super.key,
     required this.hint,
     required this.icon,
     this.obscureText = false,
-    required this.onChanged,
+    this.onChanged,
+    this.onSubmitted,
+    this.textInputAction,
+    this.focusNode,
+    this.controller,
+    this.keyboardType,
+    this.contentPadding,
   });
 
   @override
@@ -24,13 +44,19 @@ class _CustomTextFieldState extends State<CustomTextField> {
   @override
   void initState() {
     super.initState();
-    _obscureText = widget.obscureText; // initialise avec la valeur passée
+    _obscureText = widget.obscureText;
   }
 
   @override
   Widget build(BuildContext context) {
     return TextField(
+      controller: widget.controller,
+      focusNode: widget.focusNode,
+      keyboardType: widget.keyboardType,
+      textInputAction: widget.textInputAction,
       onChanged: widget.onChanged,
+      onSubmitted: widget.onSubmitted,
+      onTapOutside: (_) => FocusScope.of(context).unfocus(),
       obscureText: _obscureText,
       decoration: InputDecoration(
         filled: true,
@@ -39,25 +65,20 @@ class _CustomTextFieldState extends State<CustomTextField> {
         prefixIcon: Icon(widget.icon, color: Colors.black54),
         suffixIcon: widget.obscureText
             ? IconButton(
+                tooltip: _obscureText ? 'Afficher' : 'Masquer',
                 icon: Icon(
                   _obscureText ? Icons.visibility_off : Icons.visibility,
                   color: Colors.black54,
                 ),
-                onPressed: () {
-                  setState(() {
-                    _obscureText = !_obscureText;
-                  });
-                },
+                onPressed: () => setState(() => _obscureText = !_obscureText),
               )
             : null,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(30),
           borderSide: BorderSide.none,
         ),
-        contentPadding: const EdgeInsets.symmetric(
-          vertical: 0,
-          horizontal: 20,
-        ),
+        contentPadding: widget.contentPadding ??
+            const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
       ),
     );
   }

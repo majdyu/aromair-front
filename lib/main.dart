@@ -25,6 +25,11 @@ class MainApp extends StatelessWidget {
       title: 'Aromair',
       initialRoute: AppRoutes.login,
       getPages: AppPages.pages,
+      unknownRoute: GetPage(
+        name: '/404',
+        page: () => const Scaffold(body: Center(child: Text('PAGE INCONNUE'))),
+      ),
+
     );
   }
 }

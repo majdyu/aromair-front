@@ -4,13 +4,14 @@ import 'package:front_erp_aromair/view/screens/admin/alertes_screen.dart';
 import 'package:front_erp_aromair/view/screens/admin/aprobations_screen.dart';
 import 'package:front_erp_aromair/view/screens/admin/bouteille_detail_screen.dart';
 import 'package:front_erp_aromair/view/screens/admin/client_detail_screen.dart';
+import 'package:front_erp_aromair/view/screens/admin/clientdiffuseur_detail_screen.dart';
 import 'package:front_erp_aromair/view/screens/admin/clients_screen.dart';
 import 'package:front_erp_aromair/view/screens/admin/diffuseurs_screen.dart';
 import 'package:front_erp_aromair/view/screens/admin/interventions/etat_clientdiffuseur_screen.dart';
 import 'package:front_erp_aromair/view/screens/admin/interventions/intervention_detail_screen.dart';
 import 'package:front_erp_aromair/view/screens/admin/interventions/interventions_screen.dart';
 import 'package:front_erp_aromair/view/screens/admin/rapports_screen.dart';
-import 'package:front_erp_aromair/view/screens/admin/reclamations_screen.dart';
+import 'package:front_erp_aromair/view/screens/admin/reclamations_detail_screen.dart';
 import 'package:front_erp_aromair/view/screens/admin/utilisateurs_screen.dart';
 import 'package:get/get.dart';
 import '../view/screens/login_screen.dart';
@@ -43,7 +44,7 @@ class AppPages {
     // --- Détail intervention ---
     // /interventions/123
       GetPage(
-        name: AppRoutes.interventionDetail,
+        name: '/interventions/:id',
         page: () {
           final id = int.tryParse(Get.parameters['id'] ?? '');
           if (id == null) {
@@ -52,6 +53,7 @@ class AppPages {
           return InterventionDetailScreen(interventionId: id);
         },
       ),
+
     // --- Etat ClientDiffuseur dans une intervention ---
     // /interventions/123/client-diffuseurs/456
       GetPage(
@@ -92,6 +94,12 @@ class AppPages {
     ),
     
     GetPage(
+    name: '/client-diffuseurs/:id',
+    page: () => ClientDiffuseurDetailScreen(
+      clientDiffuseurId: int.parse(Get.parameters['id']!),
+    ),
+  ),
+    GetPage(
       name: AppRoutes.adminClients,
       page: () => const ClientsScreen(),
     ),
@@ -103,10 +111,22 @@ class AppPages {
       name: AppRoutes.adminAlertes,
       page: () => const AlertesScreen(),
     ),
+
+    // Détail réclamation : /reclamations/:id
     GetPage(
-      name: AppRoutes.adminReclamations,
-      page: () => const ReclamationsScreen(),
+      name: AppRoutes.reclamationDetail,        // '/reclamations/:id'
+      page: () {
+        final idStr = Get.parameters['id'];
+        final id = int.tryParse(idStr ?? '');
+        if (id == null) {
+          return const Scaffold(
+            body: Center(child: Text('Réclamation ID invalide')),
+          );
+        }
+        return ReclamationDetailScreen(reclamationId: id); // <— pas de const
+      },
     ),
+
     GetPage(
       name: AppRoutes.adminUtilisateurs,
       page: () => const UtilisateursScreen(),

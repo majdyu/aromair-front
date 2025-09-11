@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:front_erp_aromair/view/widgets/affecter_clientdiffuseur_dialog.dart';
 import 'package:get/get.dart';
 import 'dart:math' as math;
 
@@ -110,13 +111,13 @@ class ClientDetailScreen extends StatelessWidget {
                                         _sectionTitle(
                                           "Diffuseurs",
                                           trailing: IconButton(
-                                            onPressed: null, // TODO: ajouter plus tard
+                                            onPressed: () => showAffecterClientDiffuseurDialog(context, c),
                                             icon: const Icon(Icons.add),
                                             color: const Color(0xFF5DB7A1),
                                           ),
                                         ),
                                         const SizedBox(height: 8),
-                                        _card(_diffuseursTable(d.diffuseurs)),
+                                        _card(_diffuseursTable(d.diffuseurs, c)),
                                         const SizedBox(height: 18),
 
                                         // ---------- Interventions ----------
@@ -349,7 +350,7 @@ class ClientDetailScreen extends StatelessWidget {
   }
 
   // ---- Diffuseurs
-  static Widget _diffuseursTable(List<ClientDiffuseurRow> rows) {
+  static Widget _diffuseursTable(List<ClientDiffuseurRow> rows, ClientDetailController c) {
     if (rows.isEmpty) {
       return const Padding(
         padding: EdgeInsets.all(16),
@@ -371,7 +372,7 @@ class ClientDetailScreen extends StatelessWidget {
         rows: rows
             .map(
               (r) => DataRow(
-                onSelectChanged: (_) => Get.toNamed('/client-diffuseurs/${r.id}'),
+                onSelectChanged: (_) => c.goToClientDiffuseur(r.id),
                 cells: [
                   DataCell(Text(r.cab)),
                   DataCell(Text(r.modele)),
@@ -442,25 +443,22 @@ class ClientDetailScreen extends StatelessWidget {
           DataColumn(label: _Head("Technicien")),
           DataColumn(label: _Head("Statut")),
         ],
-        rows: rows
-            .map(
-              (r) => DataRow(
-                onSelectChanged: (_) => Get.toNamed('/reclamations/${r.id}'),
-                cells: [
-                  DataCell(Text(r.date ?? "-")),
-                  DataCell(SizedBox(
-                    width: 260,
-                    child: Text(r.probleme ?? "-", overflow: TextOverflow.ellipsis),
-                  )),
-                  DataCell(Text(r.technicien ?? "-")),
-                  DataCell(Text(r.statut ?? "-")),
-                ],
-              ),
-            )
-            .toList(),
+        rows: rows.map((r) => DataRow(
+          onSelectChanged: (_) => Get.toNamed('/reclamations/${r.id}'),
+          cells: [
+            DataCell(Text(r.date ?? "-")),
+            DataCell(SizedBox(
+              width: 260,
+              child: Text(r.probleme ?? "-", overflow: TextOverflow.ellipsis),
+            )),
+            DataCell(Text(r.technicien ?? "-")),
+            DataCell(Text(r.statut ?? "-")),
+          ],
+        )).toList(),
       ),
     );
   }
+
 
   // ---------------------------------------------------------------------------
   // helpers (styles)

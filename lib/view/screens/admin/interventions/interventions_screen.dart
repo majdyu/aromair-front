@@ -198,52 +198,43 @@ class InterventionsScreen extends StatelessWidget {
                                       child: ConstrainedBox(
                                         constraints: BoxConstraints(minWidth: cons.maxWidth),
                                         child: DataTable(
-                                          headingRowColor: MaterialStateProperty.all(
-                                            const Color(0xFF5DB7A1),
-                                          ),
-                                          showCheckboxColumn: false,
-                                          dataRowColor:
-                                              MaterialStateProperty.resolveWith<Color?>(
-                                            (states) => states.contains(
-                                                    MaterialState.selected)
-                                                ? Colors.black12
-                                                : null,
-                                          ),
-                                          columns: const [
-                                            DataColumn(label: _HeaderCell("Client")),
-                                            DataColumn(label: _HeaderCell("Technicien")),
-                                            DataColumn(
-                                                label: _HeaderCell("Derniere Intervention")),
-                                            DataColumn(label: _HeaderCell("Statut")),
-                                            DataColumn(label: _HeaderCell("Supprimer")),
-                                          ],
-                                          rows: c.items.map((it) {
-                                            return DataRow(
-                                              onSelectChanged: (_) async {
-                                                c.selectedRowId.value = it.id;
-                                                await Get.to(() => InterventionDetailScreen(
-                                                  interventionId: it.id,
-                                                ))?.then((_) => c.clearSelection());
-                                                c.selectedRowId.value = null;
-                                              },
-                                              cells: [
-                                                DataCell(Text(it.client)),
-                                                DataCell(Text(it.technicien)),
-                                                DataCell(Text(
-                                                  it.derniereIntervention != null ? _fmt(it.derniereIntervention!) : '',
-                                                )),
-                                                DataCell(Text(_prettyStatut(it.statutRaw))),
-                                                DataCell(
-                                                  IconButton(
-                                                    tooltip: "Supprimer",
-                                                    icon: const Icon(Icons.remove_circle, color: Colors.redAccent),
-                                                    onPressed: () => c.deleteIntervention(it.id),
-                                                  ),
-                                                ),
-                                              ],
-                                            );
-                                          }).toList(),
-                                        ),
+                                                headingRowColor: MaterialStateProperty.all(const Color(0xFF5DB7A1)),
+                                                showCheckboxColumn: false,
+                                                columns: const [
+                                                  DataColumn(label: _HeaderCell("Client")),
+                                                  DataColumn(label: _HeaderCell("Technicien")),
+                                                  DataColumn(label: _HeaderCell("Derniere Intervention")),
+                                                  DataColumn(label: _HeaderCell("Statut")),
+                                                  DataColumn(label: _HeaderCell("Supprimer")),
+                                                ],
+                                                rows: c.items.map((it) {
+                                                  return DataRow(
+                                                    // ✅ Couleur par ligne selon statut
+                                                    color: MaterialStateProperty.resolveWith<Color?>((states) {
+                                                      if (states.contains(MaterialState.selected)) return Colors.black12;
+                                                      return _rowBgForStatut(it.statutRaw);
+                                                    }),
+                                                    onSelectChanged: (_) async {
+                                                      c.selectedRowId.value = it.id;
+                                                      await Get.toNamed('/interventions/${it.id}')?.then((_) => c.clearSelection());
+                                                      c.selectedRowId.value = null;
+                                                    },
+                                                    cells: [
+                                                      DataCell(Text(it.client)),
+                                                      DataCell(Text(it.technicien)),
+                                                      DataCell(Text(it.derniereIntervention != null ? _fmt(it.derniereIntervention!) : '')),
+                                                      DataCell(Text(_prettyStatut(it.statutRaw))),
+                                                      DataCell(
+                                                        IconButton(
+                                                          tooltip: "Supprimer",
+                                                          icon: const Icon(Icons.remove_circle, color: Colors.redAccent),
+                                                          onPressed: () => c.deleteIntervention(it.id),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  );
+                                                }).toList(),
+                                              ),
                                       ),
                                     ),
                                   );
@@ -338,16 +329,51 @@ class _HeaderCell extends StatelessWidget {
 
 String _prettyStatut(String? s) {
   if (s == null) return '—';
-  final v = s.trim().toUpperCase()
-      .replaceAll('É', 'E')
-      .replaceAll('È', 'E');
 
-  switch (v) {
-    case 'EN_COURS': return 'En cours';
-    case 'TRAITE': return 'Traité';
-    case 'EN_RETARD': return 'En retard';
-    case 'ANNULEE': return 'Annulée';
-    case 'NON_ACCOMPLIES': return 'Non accomplies';
-    default: return s;
+  // Normalisation : MAJUSCULES, accents -> E, remplace _ et - par espace, compresse espaces
+  final n = s.trim()
+      .toUpperCase()
+      .replaceAll(RegExp(r'[ÉÈÊË]'), 'E')
+      .replaceAll(RegExp(r'[_\-]+'), ' ')
+      .replaceAll(RegExp(r'\s+'), ' ')
+      .trim();
+
+  if (n.contains('RETARD')) return 'En retard';
+  if (n.startsWith('TRAIT')) return 'Traité';
+  if (n.contains('ANNUL')) return 'Annulée';
+  if (n.contains('EN') && n.contains('COURS')) return 'En cours';
+  // "non accomplies" / "non effectuée" / "non réalisée"…
+  if (n.contains('NON') && (n.contains('ACCOMPL') || n.contains('EFFECTU') || n.contains('REALIS'))) {
+    return 'Non accomplies';
   }
+
+  // fallback : affichage brut si cas non prévu
+  return s;
 }
+
+
+Color? _rowBgForStatut(String? raw) {
+  if (raw == null) return null;
+
+  // Normalisation : MAJUSCULES, accents -> E, remplace tirets/underscores par espaces, squeeze des espaces
+  String n = raw
+      .trim()
+      .toUpperCase()
+      .replaceAll(RegExp(r'[ÉÈÊË]'), 'E')
+      .replaceAll(RegExp(r'[_\-]+'), ' ')
+      .replaceAll(RegExp(r'\s+'), ' ')
+      .trim();
+
+  // Détections "souples"
+  final isRetard = n.contains('RETARD'); // "EN RETARD" etc.
+  final isTraite = n.startsWith('TRAIT'); // "TRAITE", "TRAITEE"
+  final isNonAccomplies = n.contains('NON') &&
+      (n.contains('ACCOMPL') || n.contains('EFFECTU') || n.contains('REALIS'));
+
+  if (isRetard)        return const Color.fromARGB(255, 255, 198, 207); // rouge très clair
+  if (isNonAccomplies) return const Color.fromARGB(255, 255, 233, 199); // orange très clair
+  if (isTraite)        return const Color(0xFFE8F5E9); // vert très clair
+  return null; // aucun surlignage pour les autres
+}
+
+

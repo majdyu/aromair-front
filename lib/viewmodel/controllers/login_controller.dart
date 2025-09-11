@@ -37,7 +37,7 @@ class LoginController extends GetxController {
       _navigateByRole(payload['role']);
     } catch (e) {
       print("[LoginController] Login error: $e");
-      Get.snackbar("Error", "Login failed: $e");
+      Get.snackbar("Error", "Login failed");
     } finally {
       isLoading.value = false;
     }
