@@ -117,7 +117,7 @@ class ClientDetailScreen extends StatelessWidget {
                                           ),
                                         ),
                                         const SizedBox(height: 8),
-                                        _card(_diffuseursTable(d.diffuseurs, c)),
+                                        _card(_diffuseursTable(context, d.diffuseurs, c)),
                                         const SizedBox(height: 18),
 
                                         // ---------- Interventions ----------
@@ -350,41 +350,71 @@ class ClientDetailScreen extends StatelessWidget {
   }
 
   // ---- Diffuseurs
-  static Widget _diffuseursTable(List<ClientDiffuseurRow> rows, ClientDetailController c) {
+  static Widget _diffuseursTable(
+    BuildContext context,
+    List<ClientDiffuseurRow> rows,
+    ClientDetailController c,
+  ) {
     if (rows.isEmpty) {
       return const Padding(
         padding: EdgeInsets.all(16),
         child: Text("Aucun diffuseur."),
       );
     }
+
+    // petite boîte de confirmation avant retrait
+    Future<void> _confirmRetirer(String cab) async {
+      await Get.defaultDialog(
+        title: "Confirmer",
+        middleText: "Retirer le diffuseur $cab de ce client ?",
+        textCancel: "Annuler",
+        textConfirm: "Retirer",
+        confirmTextColor: Colors.white,
+        onConfirm: () async {
+          Get.back(); // fermer le dialog
+          await c.retirerClientDiffuseur(cab: cab); // appelle le controller
+        },
+      );
+    }
+
     return SingleChildScrollView(
       scrollDirection: Axis.vertical,
       child: DataTable(
         showCheckboxColumn: false,
         columnSpacing: 24,
         headingRowColor: MaterialStateProperty.all(const Color(0xFF5DB7A1)),
-        columns: const [
-          DataColumn(label: _Head("CAB")),
-          DataColumn(label: _Head("Modèle")),
-          DataColumn(label: _Head("Type_Carte")),
-          DataColumn(label: _Head("Emplacement")),
+        columns: [
+          const DataColumn(label: _Head("CAB")),
+          const DataColumn(label: _Head("Modèle")),
+          const DataColumn(label: _Head("Type_Carte")),
+          const DataColumn(label: _Head("Emplacement")),
+          if (c.isSuperAdmin) const DataColumn(label: _Head("Actions")), // <- nouvelle colonne
         ],
-        rows: rows
-            .map(
-              (r) => DataRow(
-                onSelectChanged: (_) => c.goToClientDiffuseur(r.id),
-                cells: [
-                  DataCell(Text(r.cab)),
-                  DataCell(Text(r.modele)),
-                  DataCell(Text(r.typeCarte)),
-                  DataCell(Text(r.emplacement)),
-                ],
-              ),
-            )
-            .toList(),
+        rows: rows.map((r) {
+          return DataRow(
+            onSelectChanged: (_) => c.goToClientDiffuseur(r.id),
+            cells: [
+              DataCell(Text(r.cab)),
+              DataCell(Text(r.modele)),
+              DataCell(Text(r.typeCarte)),
+              DataCell(Text(r.emplacement)),
+              if (c.isSuperAdmin)
+                DataCell(
+                  Tooltip(
+                    message: "Retirer ce diffuseur du client",
+                    child: IconButton(
+                      icon: const Icon(Icons.remove_circle, color: Colors.redAccent),
+                      onPressed: () => _confirmRetirer(r.cab),
+                    ),
+                  ),
+                ),
+            ],
+          );
+        }).toList(),
       ),
     );
   }
+
 
   // ---- Interventions
   static Widget _interventionsTable(List<InterventionRow> rows) {

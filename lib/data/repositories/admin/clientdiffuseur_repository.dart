@@ -9,6 +9,8 @@ abstract class IClientDiffuseurRepository {
     required String cab,
     required Map<String, dynamic> body, // <- contient emplacement/maxMin/programmes
   });
+
+  Future<void> retirerClient(String cab);
 }
 
 class ClientDiffuseurRepository implements IClientDiffuseurRepository {
@@ -28,4 +30,11 @@ class ClientDiffuseurRepository implements IClientDiffuseurRepository {
     required Map<String, dynamic> body,
   }) =>
       _service.affecterInit(clientId: clientId, cab: cab, body: body);
+
+
+  @override
+  Future<void> retirerClient(String cab) => _service.retirerClient(cab: cab);
+
 }
+
+

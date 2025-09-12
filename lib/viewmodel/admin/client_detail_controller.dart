@@ -1,6 +1,7 @@
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:front_erp_aromair/utils/storage_helper.dart';
 import 'package:get/get.dart';
 import 'package:dio/dio.dart';
 
@@ -20,6 +21,9 @@ class ClientDetailController extends GetxController {
   final isLoading = true.obs;
   final error = RxnString();
   final dto = Rxn<ClientDetail>();
+  //----------------------------------------
+  final role = ''.obs;
+  bool get isSuperAdmin => role.value == 'SUPER_ADMIN';
 
   // Edition (déjà utilisée par ton UI)
   final isEditing = false.obs;
@@ -52,6 +56,7 @@ class ClientDetailController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    _loadRole();
 
     // --- DI Dio
     _dio = Get.isRegistered<Dio>() ? Get.find<Dio>() : Get.put<Dio>(buildDio(), permanent: true);
@@ -178,6 +183,18 @@ class ClientDetailController extends GetxController {
     await fetch(); // refresh liste des diffuseurs
   }
 
+  Future<void> _loadRole() async {
+    final u = await StorageHelper.getUser();
+    role.value = (u?['role'] as String?) ?? '';
+  }
+
+  // --- retrait d’un client diffuseur ---
+  Future<void> retirerClientDiffuseur({required String cab}) async {
+    await _clientDiffuseurRepo.retirerClient(cab);
+    await fetch();
+    Get.snackbar('Succès', 'Diffuseur retiré du client', snackPosition: SnackPosition.BOTTOM);
+  }
+
   @override
   void onClose() {
     nomCtrl.dispose();
@@ -188,4 +205,5 @@ class ClientDetailController extends GetxController {
     frVisCtrl.dispose();
     super.onClose();
   }
+  
 }
