@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import 'package:front_erp_aromair/viewmodel/admin/client_detail_controller.dart';
+import 'package:front_erp_aromair/data/models/available_cab.dart';
 
 // --------- Payloads ---------
 class ProgrammePayload {
@@ -66,10 +67,15 @@ Future<void> _submit({
     programmes: programmes,
     maxMinParJour: maxMinParJour,
   );
-  await c.affecterClientDiffuseurInit(cab: cab.trim(), req: req.toJson());
-  Get.back(result: true);
-  Get.snackbar('Succès', 'Diffuseur affecté avec succès.',
-      snackPosition: SnackPosition.BOTTOM);
+  try {
+    await c.affecterClientDiffuseurInit(cab: cab.trim(), req: req.toJson());
+    Get.back(result: true);
+    Get.snackbar('Succès', 'Diffuseur affecté avec succès.',
+        snackPosition: SnackPosition.BOTTOM);
+  } catch (e) {
+    Get.snackbar('Erreur', 'Affectation échouée: $e',
+        snackPosition: SnackPosition.BOTTOM);
+  }
 }
 
 // --------- UI ----------
@@ -99,10 +105,12 @@ class _AffecterClientDiffuseurForm extends StatefulWidget {
 
 class _AffecterClientDiffuseurFormState
     extends State<_AffecterClientDiffuseurForm> {
-  final cabCtrl = TextEditingController();
   final emplCtrl = TextEditingController();
   final maxCtrl = TextEditingController();
   final formKey = GlobalKey<FormState>();
+
+  // ⚠️ pas de saisie libre du CAB : on force une sélection
+  AvailableCab? _selectedCab;
 
   bool withProgramme = true;
   final programmes = <ProgrammePayload>[ProgrammePayload()];
@@ -111,8 +119,17 @@ class _AffecterClientDiffuseurFormState
       (widget.controller.dto.value?.type ?? '').toUpperCase() == 'MAD';
 
   @override
+  void initState() {
+    super.initState();
+    // première charge des CAB disponibles si la liste est vide
+    if (widget.controller.cabsDisponibles.isEmpty &&
+        !widget.controller.isLoadingCabs.value) {
+      widget.controller.loadCabsDisponibles();
+    }
+  }
+
+  @override
   void dispose() {
-    cabCtrl.dispose();
     emplCtrl.dispose();
     maxCtrl.dispose();
     super.dispose();
@@ -143,6 +160,159 @@ class _AffecterClientDiffuseurFormState
         child: child,
       );
 
+  // -------- Sélecteur CAB (sélection forcée) --------
+  Future<void> _openCabPicker() async {
+    final ctrl = widget.controller;
+
+    // Charge au moins une fois côté serveur si vide
+    if (ctrl.cabsDisponibles.isEmpty && !ctrl.isLoadingCabs.value) {
+      await ctrl.loadCabsDisponibles();
+    }
+
+    final picked = await showModalBottomSheet<AvailableCab>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
+      ),
+      builder: (ctx) {
+        // Liste filtrable, maintenue par le StatefulBuilder
+        List<AvailableCab> options = List.of(ctrl.cabsDisponibles);
+        final search = TextEditingController();
+
+        return StatefulBuilder(
+          builder: (ctx, setModalState) {
+            void applyFilter(String q) {
+              final v = q.trim().toLowerCase();
+              setModalState(() {
+                options = ctrl.cabsDisponibles.where((o) {
+                  final a = o.cab.toLowerCase();
+                  final b = o.designation.toLowerCase();
+                  return a.contains(v) || b.contains(v);
+                }).toList();
+              });
+            }
+
+            Future<void> refreshServer() async {
+              await ctrl.loadCabsDisponibles(
+                q: search.text.trim().isEmpty ? null : search.text.trim(),
+              );
+              setModalState(() {
+                // Après refresh serveur, on repart de la source
+                options = List.of(ctrl.cabsDisponibles);
+              });
+            }
+
+            final loading = ctrl.isLoadingCabs.value;
+
+            return Padding(
+              padding: MediaQuery.of(ctx).viewInsets,
+              child: SizedBox(
+                height: 480,
+                child: Column(
+                  children: [
+                    const SizedBox(height: 10),
+                    Container(
+                      width: 42, height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.black26,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    const Text(
+                      'Sélectionner un CAB',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                    ),
+                    const SizedBox(height: 10),
+
+                    // Barre de recherche (filtre local) + refresh serveur
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              controller: search,
+                              onChanged: applyFilter, // filtre local instantané
+                              decoration: InputDecoration(
+                                prefixIcon: const Icon(Icons.search),
+                                hintText: 'Rechercher (CAB ou désignation)…',
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                isDense: true,
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 10),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          IconButton(
+                            tooltip: 'Rafraîchir depuis le serveur',
+                            onPressed: loading ? null : refreshServer,
+                            icon: loading
+                                ? const SizedBox(
+                                    width: 18, height: 18,
+                                    child: CircularProgressIndicator(strokeWidth: 2))
+                                : const Icon(Icons.refresh),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+
+                    // Liste filtrée
+                    Expanded(
+                      child: options.isEmpty
+                          ? const Center(child: Text('Aucun CAB disponible'))
+                          : ListView.separated(
+                              itemCount: options.length,
+                              separatorBuilder: (_, __) => const Divider(height: 1),
+                              itemBuilder: (_, i) {
+                                final o = options[i];
+                                return ListTile(
+                                  title: Text(
+                                    o.cab,
+                                    style: const TextStyle(fontWeight: FontWeight.w600),
+                                  ),
+                                  subtitle: o.designation.isEmpty
+                                      ? null
+                                      : Text(o.designation),
+                                  onTap: () => Navigator.of(ctx).pop(o),
+                                );
+                              },
+                            ),
+                    ),
+
+                    // Actions feuille
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 10),
+                      child: Row(
+                        children: [
+                          TextButton(
+                            onPressed: () => Navigator.of(ctx).pop(),
+                            child: const Text('Fermer'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+
+    if (picked != null) {
+      setState(() => _selectedCab = picked);
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return ConstrainedBox(
@@ -158,18 +328,44 @@ class _AffecterClientDiffuseurFormState
               mainAxisSize: MainAxisSize.min,
               children: [
                 const Text('Affecter un Diffuseur',
-                    style:
-                        TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
                 const SizedBox(height: 12),
 
-                _rounded(TextFormField(
-                  controller: cabCtrl,
-                  decoration: _dec('CAB', icon: Icons.badge_outlined),
-                  validator: (v) =>
-                      (v == null || v.trim().isEmpty) ? 'CAB requis' : null,
-                )),
+                // --- CAB (sélection obligatoire, pas de saisie libre)
+                _rounded(
+                  InkWell(
+                    borderRadius: BorderRadius.circular(28),
+                    onTap: _openCabPicker,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      child: Row(
+                        children: [
+                          const SizedBox(width: 12),
+                          const Icon(Icons.badge_outlined, color: Colors.black54),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              _selectedCab == null
+                                  ? 'Sélectionner un CAB…'
+                                  : (_selectedCab!.designation.isEmpty
+                                      ? _selectedCab!.cab
+                                      : '${_selectedCab!.cab} — ${_selectedCab!.designation}'),
+                              style: TextStyle(
+                                color: _selectedCab == null ? Colors.black45 : Colors.black87,
+                                fontSize: 15,
+                              ),
+                            ),
+                          ),
+                          const Icon(Icons.arrow_drop_down),
+                          const SizedBox(width: 10),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
                 const SizedBox(height: 10),
 
+                // --- Emplacement
                 _rounded(TextFormField(
                   controller: emplCtrl,
                   decoration: _dec('Emplacement', icon: Icons.place_outlined),
@@ -179,6 +375,7 @@ class _AffecterClientDiffuseurFormState
                 )),
                 const SizedBox(height: 10),
 
+                // --- Max minutes / jour (MAD)
                 if (isMAD)
                   _rounded(TextFormField(
                     controller: maxCtrl,
@@ -198,6 +395,7 @@ class _AffecterClientDiffuseurFormState
 
                 const SizedBox(height: 12),
 
+                // --- Programmes init
                 Row(
                   children: [
                     Checkbox(
@@ -384,17 +582,21 @@ class _AffecterClientDiffuseurFormState
                     const Spacer(),
                     FilledButton(
                       onPressed: () {
+                        // validations
+                        if (_selectedCab == null) {
+                          Get.snackbar('Champ requis', 'Veuillez sélectionner un CAB.',
+                              snackPosition: SnackPosition.BOTTOM);
+                          return;
+                        }
                         if (!formKey.currentState!.validate()) return;
-                        final cab = cabCtrl.text;
+
                         final emp = emplCtrl.text;
-                        final max =
-                            isMAD ? int.tryParse(maxCtrl.text) : null;
-                        final progs = withProgramme
-                            ? programmes
-                            : <ProgrammePayload>[];
+                        final max = isMAD ? int.tryParse(maxCtrl.text) : null;
+                        final progs = withProgramme ? programmes : <ProgrammePayload>[];
+
                         _submit(
                           c: widget.controller,
-                          cab: cab,
+                          cab: _selectedCab!.cab,
                           emplacement: emp,
                           maxMinParJour: max,
                           programmes: progs,

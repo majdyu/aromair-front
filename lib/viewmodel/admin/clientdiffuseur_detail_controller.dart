@@ -1,5 +1,4 @@
 import 'package:front_erp_aromair/core/net/dio_client.dart';
-import 'package:front_erp_aromair/data/models/affecter_client_diffuseur_request.dart';
 import 'package:get/get.dart';
 import 'package:dio/dio.dart';
 import 'package:front_erp_aromair/data/models/clientdiffuseur_detail.dart';

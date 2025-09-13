@@ -6,7 +6,7 @@ class ClientDiffuseurService {
 
   // Détail (utile si tu as besoin ailleurs)
   Future<Map<String, dynamic>> getDetail(int id) async {
-    final res = await _dio.get('/client-diffuseurs/$id/detail');
+    final res = await _dio.get('client-diffuseurs/$id/detail');
     return Map<String, dynamic>.from(res.data as Map);
   }
 
@@ -32,7 +32,7 @@ class ClientDiffuseurService {
 
 // Affectation modification : /client-diffuseurs/{cab}
   Future<void> retirerClient({required String cab}) async {
-    final res = await _dio.put('/client-diffuseurs/$cab/retirer-client');
+    final res = await _dio.put('client-diffuseurs/$cab/retirer-client');
     if (res.statusCode != 200) {
       throw DioException(
         requestOptions: res.requestOptions,
@@ -41,5 +41,14 @@ class ClientDiffuseurService {
         error: 'Retrait échoué (${res.statusCode})',
       );
     }
+  }
+
+  Future<List<Map<String, dynamic>>> getCabsDisponibles({String? q}) async {
+    final res = await _dio.get(
+      'client-diffuseurs/disponibles',
+      queryParameters: (q == null || q.trim().isEmpty) ? null : {'q': q.trim()},
+    );
+    final data = (res.data as List).cast<dynamic>();
+    return data.map((e) => Map<String, dynamic>.from(e as Map)).toList();
   }
 }

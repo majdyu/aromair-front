@@ -1,6 +1,5 @@
-import 'dart:io' show Platform;
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:front_erp_aromair/data/models/available_cab.dart';
 import 'package:front_erp_aromair/utils/storage_helper.dart';
 import 'package:get/get.dart';
 import 'package:dio/dio.dart';
@@ -28,6 +27,10 @@ class ClientDetailController extends GetxController {
   // Edition (déjà utilisée par ton UI)
   final isEditing = false.obs;
   final formKey = GlobalKey<FormState>();
+
+// ------- pour l’affectation client-diffuseur -------
+  final cabsDisponibles = <AvailableCab>[].obs;
+  final isLoadingCabs = false.obs;
 
   // Champs formulaire
   final nomCtrl = TextEditingController();
@@ -171,6 +174,23 @@ class ClientDetailController extends GetxController {
   // ------------------------------------------------------------
   // *** AFFECTATION CLIENT ⇄ CLIENT-DIFFUSEUR (INIT) ***
   // ------------------------------------------------------------
+  Future<void> loadCabsDisponibles({String? q}) async {
+  try {
+    isLoadingCabs.value = true;
+    final list = await _clientDiffuseurRepo.getCabsDisponibles(q: q);
+    cabsDisponibles.assignAll(list);
+  } catch (e) {
+    Get.snackbar(
+      'Erreur',
+      'Chargement CAB disponibles: $e',
+      snackPosition: SnackPosition.BOTTOM,
+    );
+  } finally {
+    isLoadingCabs.value = false;
+  }
+}
+
+
   Future<void> affecterClientDiffuseurInit({
     required String cab,
     required Map<String, dynamic> req, // { emplacement, maxMinParJour?, programmes[] }
