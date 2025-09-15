@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:front_erp_aromair/view/screens/admin/alerte_detail_screen.dart';
 import 'package:front_erp_aromair/view/screens/admin/alertes_screen.dart';
-import 'package:front_erp_aromair/view/screens/admin/aprobations_screen.dart';
 import 'package:front_erp_aromair/view/screens/admin/bouteille_detail_screen.dart';
 import 'package:front_erp_aromair/view/screens/admin/client_detail_screen.dart';
 import 'package:front_erp_aromair/view/screens/admin/clientdiffuseur_detail_screen.dart';
@@ -134,10 +133,6 @@ class AppPages {
     GetPage(
       name: AppRoutes.adminRapports,
       page: () => const RapportsScreen(),
-    ),
-    GetPage(
-      name: AppRoutes.adminAprobations,
-      page: () => const AprobationsScreen(),
     ),
     // Technicien routes
     GetPage(

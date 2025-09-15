@@ -82,6 +82,12 @@ class EtatClientDiffuseurScreen extends StatelessWidget {
                                                   "Max minutes / jour",
                                                   data.maxMinutesParJour?.toString() ?? "-",
                                                 ),
+                                                _kv(
+                                                  "Rythme conso / jour",
+                                                  (data.rythmeConsomParJour == null)
+                                                      ? "-"
+                                                      : "${data.rythmeConsomParJour!} ml",
+                                                ),
                                               ]),
                                             ),
                                             const SizedBox(width: 24),

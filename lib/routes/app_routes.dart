@@ -20,7 +20,6 @@ class AppRoutes {
   static const adminReclamations = '/admin-reclamations';
   static const adminUtilisateurs = '/admin-utilisateurs';
   static const adminRapports = '/admin-rapports';
-  static const adminAprobations = '/admin-aprobations';
 
   // Technicien routes
   static const techHome = '/techHome';

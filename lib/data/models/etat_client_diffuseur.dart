@@ -9,6 +9,7 @@ class EtatClientDiffuseur {
   final String emplacement;
   final DateTime? dateMiseEnMarche; // DateTime? pour format propre
   final int? maxMinutesParJour;
+  final double? rythmeConsomParJour; 
 
   // Détails pivot (dans l’intervention)
   final List<ProgrammeEtat> programmes;
@@ -31,6 +32,7 @@ class EtatClientDiffuseur {
     required this.emplacement,
     required this.dateMiseEnMarche,
     required this.maxMinutesParJour,
+    required this.rythmeConsomParJour,
     required this.programmes,
     required this.bouteille,
     required this.qualiteBonne,
@@ -46,6 +48,7 @@ class EtatClientDiffuseur {
     String? emplacement,
     DateTime? dateMiseEnMarche,
     int? maxMinutesParJour,
+    double? rythmeConsomParJour,
     List<ProgrammeEtat>? programmes,
     BouteilleEtat? bouteille,
     bool? qualiteBonne,
@@ -62,6 +65,7 @@ class EtatClientDiffuseur {
       emplacement: emplacement ?? this.emplacement,
       dateMiseEnMarche: dateMiseEnMarche ?? this.dateMiseEnMarche,
       maxMinutesParJour: maxMinutesParJour ?? this.maxMinutesParJour,
+      rythmeConsomParJour: rythmeConsomParJour ?? this.rythmeConsomParJour, 
       programmes: programmes ?? this.programmes,
       bouteille: bouteille ?? this.bouteille,
       qualiteBonne: qualiteBonne ?? this.qualiteBonne,
@@ -117,6 +121,7 @@ class EtatClientDiffuseur {
       emplacement: (j['emplacement'] as String?) ?? '-',
       dateMiseEnMarche: _parseDateTime(j['dateMiseEnMarche']),
       maxMinutesParJour: (j['maxMinutesParJour'] as num?)?.toInt(),
+      rythmeConsomParJour: (j['rythmeConsomParJour'] as num?)?.toDouble(),
       programmes: programmes,
       bouteille: bouteille,
       qualiteBonne: j['qualiteBonne'] as bool?,
@@ -135,6 +140,7 @@ class EtatClientDiffuseur {
         'emplacement': emplacement,
         'dateMiseEnMarche': dateMiseEnMarche?.toIso8601String(),
         'maxMinutesParJour': maxMinutesParJour,
+        "rythmeConsomParJour": rythmeConsomParJour,
         'programmes': programmes.map((e) => e.toJson()).toList(),
         'bouteille': bouteille?.toJson(),
         'qualiteBonne': qualiteBonne,
