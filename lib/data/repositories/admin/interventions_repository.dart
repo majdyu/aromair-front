@@ -40,6 +40,7 @@ class InterventionsRepository {
     DateTime? date,
     bool? estPayementObligatoire,
     String? remarque,
+    double? payement,
     int? userId,
   }) {
     return _service.updateMeta(
@@ -47,6 +48,7 @@ class InterventionsRepository {
       date: date,
       estPayementObligatoire: estPayementObligatoire,
       remarque: remarque,
+      payement: payement,
       userId: userId,
     );
   }

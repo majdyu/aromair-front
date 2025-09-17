@@ -5,6 +5,7 @@ class InterventionDetail {
   final bool estPayementObligatoire;
   final String statut;
   final String? remarque;
+  final double? payement;
   final int? clientId;
   final String clientNom;
   final int? userId;
@@ -13,7 +14,7 @@ class InterventionDetail {
   final String? ficheMaintenance;
   final List<ClientDiffuseurRow> diffuseurs;
   final List<AlerteRow> alertes;
-  final List<TafRow> tafs; // <-- AJOUT
+  final List<TafRow> tafs;
 
   InterventionDetail({
     required this.id,
@@ -22,6 +23,7 @@ class InterventionDetail {
     required this.estPayementObligatoire,
     required this.statut,
     required this.remarque,
+    required this.payement,
     required this.clientId,
     required this.clientNom,
     required this.userId,
@@ -30,13 +32,54 @@ class InterventionDetail {
     required this.ficheMaintenance,
     required this.diffuseurs,
     required this.alertes,
-    required this.tafs, // <-- AJOUT
+    required this.tafs,
   });
+
+  /// ✅ Ajout: copyWith pour permettre l’update optimiste
+  InterventionDetail copyWith({
+    int? id,
+    DateTime? date,
+    DateTime? derniereIntervention,
+    bool? estPayementObligatoire,
+    String? statut,
+    String? remarque,
+    double? payement,
+    int? clientId,
+    String? clientNom,
+    int? userId,
+    String? userNom,
+    String? titreFicheMaintenance,
+    String? ficheMaintenance,
+    List<ClientDiffuseurRow>? diffuseurs,
+    List<AlerteRow>? alertes,
+    List<TafRow>? tafs,
+  }) {
+    return InterventionDetail(
+      id: id ?? this.id,
+      date: date ?? this.date,
+      derniereIntervention: derniereIntervention ?? this.derniereIntervention,
+      estPayementObligatoire:
+          estPayementObligatoire ?? this.estPayementObligatoire,
+      statut: statut ?? this.statut,
+      remarque: remarque ?? this.remarque,
+      payement: payement ?? this.payement,
+      clientId: clientId ?? this.clientId,
+      clientNom: clientNom ?? this.clientNom,
+      userId: userId ?? this.userId,
+      userNom: userNom ?? this.userNom,
+      titreFicheMaintenance:
+          titreFicheMaintenance ?? this.titreFicheMaintenance,
+      ficheMaintenance: ficheMaintenance ?? this.ficheMaintenance,
+      diffuseurs: diffuseurs ?? this.diffuseurs,
+      alertes: alertes ?? this.alertes,
+      tafs: tafs ?? this.tafs,
+    );
+  }
 
   factory InterventionDetail.fromJson(Map<String, dynamic> j) {
     DateTime? parseDate(dynamic v) {
       if (v == null) return null;
-      if (v is String) return DateTime.parse(v); // ISO
+      if (v is String) return DateTime.parse(v);
       if (v is List && v.length >= 3) {
         final y = v[0] as int, m = v[1] as int, d = v[2] as int;
         final hh = v.length > 3 ? v[3] as int : 0;
@@ -65,6 +108,7 @@ class InterventionDetail {
       estPayementObligatoire: (j['estPayementObligatoire'] as bool?) ?? false,
       statut: (j['statut'] as String?) ?? 'EN_COURS',
       remarque: j['remarque'] as String?,
+      payement: (j['payement'] as num?)?.toDouble(), // ✅ parse paiement
       clientId: j['clientId'] as int?,
       clientNom: (j['clientNom'] as String?) ?? '-',
       userId: j['userId'] as int?,
@@ -73,10 +117,11 @@ class InterventionDetail {
       ficheMaintenance: j['ficheMaintenance'] as String?,
       diffuseurs: diffs,
       alertes: al,
-      tafs: tafRows, // <-- AJOUT
+      tafs: tafRows,
     );
   }
 }
+
 
 class TafRow {
   final int id;

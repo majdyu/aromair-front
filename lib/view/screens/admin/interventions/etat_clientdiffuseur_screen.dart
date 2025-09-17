@@ -75,8 +75,7 @@ class EtatClientDiffuseurScreen extends StatelessWidget {
                                                   "Date de mise en marche",
                                                   data.dateMiseEnMarche == null
                                                       ? "-"
-                                                      : DateFormat('dd/MM/yyyy')
-                                                          .format(data.dateMiseEnMarche!),
+                                                      : DateFormat('dd/MM/yyyy').format(data.dateMiseEnMarche!),
                                                 ),
                                                 _kv(
                                                   "Max minutes / jour",
@@ -92,10 +91,13 @@ class EtatClientDiffuseurScreen extends StatelessWidget {
                                             ),
                                             const SizedBox(width: 24),
                                             Expanded(
-                                              child: _infoBlockBooleans(
-                                                qualite: data.qualiteBonne,
-                                                fuite: data.fuite,
-                                                enMarche: data.enMarche,
+                                              // Nouveau bloc "Infos intervention" (embedded)
+                                              child: _infoBlockInfos(
+                                                infos: data.infos,
+                                                // Fallback si le back renvoie encore les 3 booleans au niveau root
+                                                fallbackQualite: data.qualiteBonne,
+                                                fallbackFuite: data.fuite,
+                                                fallbackMarche: data.enMarche,
                                               ),
                                             ),
                                           ],
@@ -113,9 +115,7 @@ class EtatClientDiffuseurScreen extends StatelessWidget {
                                                   child: Text("Aucun programme."),
                                                 )
                                               : Column(
-                                                  children: data.programmes
-                                                      .map(_programmeRow)
-                                                      .toList(),
+                                                  children: data.programmes.map(_programmeRow).toList(),
                                                 ),
                                         ),
 
@@ -153,18 +153,14 @@ class EtatClientDiffuseurScreen extends StatelessWidget {
                                                           if (data.bouteille?.id != null) {
                                                             Get.toNamed('/bouteilles/${data.bouteille!.id}');
                                                           } else {
-                                                            Get.snackbar("Indisponible",
-                                                                "Cette bouteille n’a pas d’identifiant.");
+                                                            Get.snackbar("Indisponible", "Cette bouteille n’a pas d’identifiant.");
                                                           }
                                                         },
                                                         cells: [
                                                           DataCell(Text(data.bouteille!.type ?? "-")),
-                                                          DataCell(Text(
-                                                              data.bouteille!.qteInitiale?.toString() ?? "-")),
-                                                          DataCell(
-                                                              Text(data.bouteille!.qtePrevu?.toString() ?? "-")),
-                                                          DataCell(
-                                                              Text(data.bouteille!.qteExistante?.toString() ?? "-")),
+                                                          DataCell(Text(data.bouteille!.qteInitiale?.toString() ?? "-")),
+                                                          DataCell(Text(data.bouteille!.qtePrevu?.toString() ?? "-")),
+                                                          DataCell(Text(data.bouteille!.qteExistante?.toString() ?? "-")),
                                                           DataCell(Text(data.bouteille!.parfum ?? "-")),
                                                         ],
                                                       ),
@@ -205,20 +201,24 @@ class EtatClientDiffuseurScreen extends StatelessWidget {
         children: children,
       );
 
-  static Widget _infoBlockBooleans({
-    required bool? qualite,
-    required bool? fuite,
-    required bool? enMarche,
+  /// Nouveau : affiche le bloc `infos` (embedded), avec repli sur les 3 champs legacy si `infos == null`.
+  static Widget _infoBlockInfos({
+    required InfosInterCD? infos,
+    bool? fallbackQualite,
+    bool? fallbackFuite,
+    bool? fallbackMarche,
   }) {
-    String qLabel(bool? v) {
-      if (v == null) return "-";
-      return v ? "Bonne" : "Mauvaise";
-    }
+    // helpers d'affichage
+    String yn(bool? v) => v == null ? "-" : (v ? "Oui" : "Non");
+    String quality(bool? v) => v == null ? "-" : (v ? "Bonne" : "Mauvaise");
+    String pos(bool? v) => v == null ? "-" : (v ? "Intérieur" : "Extérieur");
+    String branchement(bool? v) => v == null ? "-" : (v ? "Branché" : "Débranché");
+    String marche(bool? v) => v == null ? "-" : (v ? "En Marche" : "En Arrêt");
 
-    String yn(bool? v) {
-      if (v == null) return "-";
-      return v ? "Oui" : "Non";
-    }
+    // valeurs à afficher (priorité à infos, sinon fallback)
+    final _qualite = infos?.qualiteBonne ?? fallbackQualite;
+    final _fuite = infos?.fuite ?? fallbackFuite;
+    final _marche = infos?.enMarche ?? fallbackMarche;
 
     Widget line(String k, String v) => Padding(
           padding: const EdgeInsets.only(bottom: 6),
@@ -233,9 +233,24 @@ class EtatClientDiffuseurScreen extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        line("Qualité de diffusion", qLabel(qualite)),
-        line("Fuite", yn(fuite)),
-        line("En marche", yn(enMarche)),
+        const Text("Infos intervention :", style: TextStyle(fontWeight: FontWeight.w700)),
+        const SizedBox(height: 8),
+        line("Qualité de diffusion", quality(_qualite)),
+        line("Fuite", yn(_fuite)),
+        line("En marche", marche(_marche)),
+        const SizedBox(height: 8),
+        line("Position tuyau", pos(infos?.tuyeauPosition)),
+        line("En place", yn(infos?.estEnPlace)),
+        line("Autocollant appliqué", yn(infos?.estAutocolantApplique)),
+        line("Dommage", yn(infos?.estDommage)),
+        line("Branchement", branchement(infos?.branchement)),
+        line("Livraison effectuée", yn(infos?.estLivraisonEffectue)),
+        line("Programme changé", yn(infos?.estProgrammeChange)),
+        const SizedBox(height: 8),
+        line("État logiciel", infos?.etatSoftware ?? "-"),
+        line("Motif arrêt", infos?.motifArret ?? "-"),
+        line("Motif débranchement", infos?.motifDebranchement ?? "-"),
+        line("Motif insatisfaction", infos?.motifInsatisfaction ?? "-"),
       ],
     );
   }
@@ -379,15 +394,19 @@ class EtatClientDiffuseurScreen extends StatelessWidget {
         DataColumn(label: _Head("Cause")),
         DataColumn(label: _Head("Etat résolution")),
       ],
-      rows: rows.map((a) => DataRow(
-        onSelectChanged: (_) => Get.toNamed('/alertes/${a.id}'),
-        cells: [
-          DataCell(Text(a.date)),
-          DataCell(Text(a.probleme ?? '-')),
-          DataCell(Text(a.cause ?? '-')),
-          DataCell(Text(a.etatResolution)),
-        ],
-      )).toList(),
+      rows: rows
+          .map(
+            (a) => DataRow(
+              onSelectChanged: (_) => Get.toNamed('/alertes/${a.id}'),
+              cells: [
+                DataCell(Text(a.date)),
+                DataCell(Text(a.probleme ?? '-')),
+                DataCell(Text(a.cause ?? '-')),
+                DataCell(Text(a.etatResolution)),
+              ],
+            ),
+          )
+          .toList(),
     );
   }
 }

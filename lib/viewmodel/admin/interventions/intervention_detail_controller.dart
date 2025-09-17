@@ -19,6 +19,11 @@ class InterventionDetailController extends GetxController {
   final isEditingRemark = false.obs;
   final isSavingRemark  = false.obs;
 
+  // --- Paiement inline ---
+  final payCtrl = TextEditingController();
+  final isEditingPay = false.obs;
+  final isSavingPay = false.obs;
+
   @override
   void onInit() {
     super.onInit();
@@ -32,14 +37,16 @@ class InterventionDetailController extends GetxController {
       final d = await repo.detail(interventionId);
       detail.value = d;
 
-      // Toujours réaligner le champ sur la valeur DB (jamais "-")
-      // sauf si on est en train d’éditer (sécurité supplémentaire côté écran déjà faite)
+      // réaligner les champs UI si pas en édition
       if (!isEditingRemark.value) {
         remarkCtrl.text = (d.remarque ?? '').trim();
       }
+      if (!isEditingPay.value) {
+        payCtrl.text = d.payement == null ? '' : d.payement!.toString();
+      }
 
-      // On sort du mode édition si on y était (ex. après patch)
       isEditingRemark.value = false;
+      isEditingPay.value = false;
     } catch (e) {
       error.value = e.toString();
     } finally {
@@ -47,15 +54,15 @@ class InterventionDetailController extends GetxController {
     }
   }
 
+  // --- Remarque ---
   void startEditRemark() => isEditingRemark.value = true;
 
   Future<void> submitRemark() async {
     isSavingRemark.value = true;
     try {
       final text = remarkCtrl.text.trim();
-      // IMPORTANT : envoyer null si vide (et pas "-")
       await repo.updateMeta(interventionId, remarque: text.isEmpty ? null : text);
-      await fetch(); // se réaligne avec la DB (et met fin au mode édition)
+      await fetch();
       Get.snackbar('Succès', 'Remarque enregistrée.');
     } catch (e) {
       Get.snackbar('Erreur', 'Échec de mise à jour: $e');
@@ -64,9 +71,37 @@ class InterventionDetailController extends GetxController {
     }
   }
 
+  // --- Paiement ---
+  void startEditPay() => isEditingPay.value = true;
+
+  Future<void> submitPay() async {
+    final raw = payCtrl.text.trim().replaceAll(',', '.');
+    final value = double.tryParse(raw);
+    if (value == null) {
+      Get.snackbar("Montant invalide", "Saisis un nombre (ex: 12.500)");
+      return;
+    }
+
+    isSavingPay.value = true;
+    try {
+      await repo.updateMeta(interventionId, payement: value);
+      // update optimiste local
+      final d = detail.value;
+      if (d != null) {
+        detail.value = d.copyWith(payement: value); 
+      }
+      isEditingPay.value = false;
+    } catch (e) {
+      Get.snackbar("Erreur", "Mise à jour du paiement échouée: $e");
+    } finally {
+      isSavingPay.value = false;
+    }
+  }
+
   @override
   void onClose() {
     remarkCtrl.dispose();
+    payCtrl.dispose(); // ✅ important
     super.onClose();
   }
 }

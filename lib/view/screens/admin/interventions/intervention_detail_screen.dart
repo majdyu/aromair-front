@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
@@ -11,6 +12,7 @@ class InterventionDetailScreen extends StatelessWidget {
   const InterventionDetailScreen({super.key, required this.interventionId});
 
   String _fmtDate(DateTime d) => DateFormat('dd/MM/yyyy').format(d);
+  String _fmtMoney(num? v) => v == null ? '-' : NumberFormat("#,##0.###", "fr_FR").format(v);
 
   @override
   Widget build(BuildContext context) {
@@ -22,14 +24,16 @@ class InterventionDetailScreen extends StatelessWidget {
       builder: (c) {
         final d = c.detail.value;
 
-        // Hydrate le champ remarque quand le DTO arrive (sans écraser en mode édition)
+        // Hydrate remarque + paiement quand le DTO arrive (sans écraser si en édition)
         if (d != null) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (!c.isEditingRemark.value) {
               final incoming = (d.remarque ?? '').trim();
-              if (c.remarkCtrl.text != incoming) {
-                c.remarkCtrl.text = incoming;
-              }
+              if (c.remarkCtrl.text != incoming) c.remarkCtrl.text = incoming;
+            }
+            if (!c.isEditingPay.value) {
+              final payStr = d.payement == null ? '' : d.payement!.toString();
+              if (c.payCtrl.text != payStr) c.payCtrl.text = payStr;
             }
           });
         }
@@ -70,7 +74,7 @@ class InterventionDetailScreen extends StatelessWidget {
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        // ---------- Bandeau header ----------
+                                        // ---------- En-tête ----------
                                         Wrap(
                                           spacing: 16,
                                           runSpacing: 16,
@@ -96,10 +100,15 @@ class InterventionDetailScreen extends StatelessWidget {
                                                     runSpacing: 8,
                                                     children: [
                                                       _statutChip(d.statut),
-                                                      _payChip(
+                                                      _chipWithIcon(
+                                                        Icons.payments_outlined,
                                                         d.estPayementObligatoire
-                                                            ? "Payement obligatoire"
-                                                            : "Payement non obligatoire",
+                                                            ? "Paiement obligatoire"
+                                                            : "Paiement non obligatoire",
+                                                      ),
+                                                      _chipWithIcon(
+                                                        Icons.attach_money_outlined,
+                                                        "Montant: ${_fmtMoney(d.payement)}",
                                                       ),
                                                     ],
                                                   ),
@@ -107,12 +116,14 @@ class InterventionDetailScreen extends StatelessWidget {
                                               ),
                                             ),
 
-                                            // Colonne droite : remarque (inline editable) + actions
+                                            // Colonne droite : édition remarque & paiement + actions
                                             Expanded(
                                               child: Column(
                                                 crossAxisAlignment: CrossAxisAlignment.start,
                                                 children: [
                                                   _remarqueWidget(c),
+                                                  const SizedBox(height: 12),
+                                                  _paymentWidget(c), // ⬅️ NOUVEAU
                                                   const SizedBox(height: 10),
                                                   Wrap(
                                                     spacing: 8,
@@ -126,9 +137,7 @@ class InterventionDetailScreen extends StatelessWidget {
                                                                   context,
                                                                   c.detail.value!,
                                                                 );
-                                                                if (ok == true) {
-                                                                  await c.fetch(); // recharge après sauvegarde des TAFs
-                                                                }
+                                                                if (ok == true) await c.fetch();
                                                               },
                                                         icon: const Icon(Icons.list_alt),
                                                         label: const Text("Travail à faire"),
@@ -246,12 +255,11 @@ class InterventionDetailScreen extends StatelessWidget {
     );
   }
 
-  // ---------- Widget Remarque (inline editable) ----------
+  // ---------- Remarque (édition inline) ----------
   Widget _remarqueWidget(InterventionDetailController c) {
     String _serverValue() => (c.detail.value?.remarque ?? '').trim();
 
     void _cancelEdit() {
-      // Revenir à la valeur DB et sortir du mode édition
       c.remarkCtrl.text = _serverValue();
       c.isEditingRemark.value = false;
     }
@@ -262,12 +270,8 @@ class InterventionDetailScreen extends StatelessWidget {
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
-              "Remarque / Règlement",
-              style: TextStyle(fontWeight: FontWeight.w600),
-            ),
+            const Text("Remarque / Règlement", style: TextStyle(fontWeight: FontWeight.w600)),
             const SizedBox(width: 6),
-            // Icône "modifier" visible uniquement en lecture
             Obx(() => !c.isEditingRemark.value
                 ? IconButton(
                     tooltip: 'Modifier',
@@ -280,14 +284,11 @@ class InterventionDetailScreen extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 8),
-
-        // Lecture ou édition
         Obx(() => c.isEditingRemark.value
             ? SizedBox(
                 width: 420,
                 child: Focus(
                   onKey: (node, event) {
-                    // ESC pour annuler
                     if (event.logicalKey.keyLabel == 'Escape') {
                       _cancelEdit();
                       return KeyEventResult.handled;
@@ -302,29 +303,21 @@ class InterventionDetailScreen extends StatelessWidget {
                     onSubmitted: (_) => c.submitRemark(),
                     decoration: InputDecoration(
                       hintText: 'Saisir puis Entrée pour enregistrer',
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 10,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                       suffixIcon: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          // Annuler
                           IconButton(
                             tooltip: 'Annuler (Échap)',
                             icon: const Icon(Icons.close),
                             onPressed: c.isSavingRemark.value ? null : _cancelEdit,
                           ),
-                          // Enregistrer
                           c.isSavingRemark.value
                               ? const Padding(
                                   padding: EdgeInsets.all(10),
                                   child: SizedBox(
-                                    width: 18,
-                                    height: 18,
+                                    width: 18, height: 18,
                                     child: CircularProgressIndicator(strokeWidth: 2),
                                   ),
                                 )
@@ -362,17 +355,112 @@ class InterventionDetailScreen extends StatelessWidget {
     );
   }
 
-  // ---------- Helpers UI ----------
+  // ---------- Paiement (édition inline) ----------
+  Widget _paymentWidget(InterventionDetailController c) {
+    String _serverValue() {
+      final v = c.detail.value?.payement;
+      return v == null ? '' : v.toString();
+    }
+
+    void _cancelEdit() {
+      c.payCtrl.text = _serverValue();
+      c.isEditingPay.value = false;
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text("Montant à payer (DT)", style: TextStyle(fontWeight: FontWeight.w600)),
+            const SizedBox(width: 6),
+            Obx(() => !c.isEditingPay.value
+                ? IconButton(
+                    tooltip: 'Modifier',
+                    icon: const Icon(Icons.edit_outlined, size: 18),
+                    onPressed: c.submitPay,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  )
+                : const SizedBox.shrink()),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Obx(() => c.isEditingPay.value
+            ? SizedBox(
+                width: 260,
+                child: Focus(
+                  onKey: (node, event) {
+                    if (event.logicalKey.keyLabel == 'Escape') {
+                      _cancelEdit();
+                      return KeyEventResult.handled;
+                    }
+                    return KeyEventResult.ignored;
+                  },
+                  child: TextField(
+                    controller: c.payCtrl,
+                    autofocus: true,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'[0-9\.,]')),
+                    ],
+                    onSubmitted: (_) => c.submitPay(),
+                    decoration: InputDecoration(
+                      hintText: '0.000',
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                      suffixIcon: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            tooltip: 'Annuler (Échap)',
+                            icon: const Icon(Icons.close),
+                            onPressed: c.isSavingPay.value ? null : _cancelEdit,
+                          ),
+                          c.isSavingPay.value
+                              ? const Padding(
+                                  padding: EdgeInsets.all(10),
+                                  child: SizedBox(
+                                    width: 18, height: 18,
+                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                  ),
+                                )
+                              : IconButton(
+                                  tooltip: 'Enregistrer (Entrée)',
+                                  icon: const Icon(Icons.check),
+                                  onPressed: c.submitPay,
+                                ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              )
+            : InkWell(
+                onTap: c.startEditPay,
+                borderRadius: BorderRadius.circular(10),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.black12),
+                  ),
+                  child: Text(
+                    _fmtMoney(c.detail.value?.payement),
+                    style: const TextStyle(height: 1.3),
+                  ),
+                ),
+              )),
+      ],
+    );
+  }
+
+  // ---------- Helpers ----------
   Widget _sectionTitle(String t) => Row(
         children: [
-          Container(
-            width: 4,
-            height: 18,
-            decoration: BoxDecoration(
-              color: const Color(0xFF5DB7A1),
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
+          Container(width: 4, height: 18, decoration: BoxDecoration(color: const Color(0xFF5DB7A1), borderRadius: BorderRadius.circular(2))),
           const SizedBox(width: 8),
           Text(t, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
         ],
@@ -381,11 +469,7 @@ class InterventionDetailScreen extends StatelessWidget {
   Widget _dataCard({required Widget child}) => ClipRRect(
         borderRadius: BorderRadius.circular(12),
         child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            border: Border.all(color: Colors.black12),
-            borderRadius: BorderRadius.circular(12),
-          ),
+          decoration: BoxDecoration(color: Colors.white, border: Border.all(color: Colors.black12), borderRadius: BorderRadius.circular(12)),
           child: child,
         ),
       );
@@ -395,10 +479,7 @@ class InterventionDetailScreen extends StatelessWidget {
         child: RichText(
           text: TextSpan(
             style: const TextStyle(color: Colors.black87, fontSize: 14),
-            children: [
-              TextSpan(text: "$k: ", style: const TextStyle(fontWeight: FontWeight.w600)),
-              TextSpan(text: v),
-            ],
+            children: [TextSpan(text: "$k: ", style: const TextStyle(fontWeight: FontWeight.w600)), TextSpan(text: v)],
           ),
         ),
       );
@@ -410,17 +491,20 @@ class InterventionDetailScreen extends StatelessWidget {
         side: BorderSide.none,
       );
 
+  static Widget _chipWithIcon(IconData i, String label) => Chip(
+        avatar: Icon(i, size: 18),
+        label: Text(label),
+        backgroundColor: const Color(0xFFF7F7F7),
+        side: BorderSide.none,
+      );
+
   static Color _statutColor(String s) {
     switch (s) {
-      case "TRAITE":
-        return const Color(0xFF2EB85C); // vert
-      case "EN_RETARD":
-        return const Color(0xFFDC3545); // rouge
-      case "NON_ACCOMPLIES":
-        return const Color(0xFFFF7F50); // corail
+      case "TRAITE": return const Color(0xFF2EB85C);
+      case "EN_RETARD": return const Color(0xFFDC3545);
+      case "NON_ACCOMPLIES": return const Color(0xFFFF7F50);
       case "EN_COURS":
-      default:
-        return const Color(0xFFFFC107); // amber
+      default: return const Color(0xFFFFC107);
     }
   }
 
@@ -431,25 +515,13 @@ class InterventionDetailScreen extends StatelessWidget {
         side: BorderSide.none,
       );
 
-  static Widget _payChip(String label) => Chip(
-        avatar: const Icon(Icons.payments_outlined, size: 18),
-        label: Text(label),
-        backgroundColor: const Color(0xFFF7F7F7),
-        side: BorderSide.none,
-      );
-
   static String _prettyStatut(String s) {
     switch (s) {
-      case "EN_COURS":
-        return "en cours";
-      case "TRAITE":
-        return "traité";
-      case "EN_RETARD":
-        return "en retard";
-      case "NON_ACCOMPLIES":
-        return "non accomplies";
-      default:
-        return s;
+      case "EN_COURS": return "en cours";
+      case "TRAITE": return "traité";
+      case "EN_RETARD": return "en retard";
+      case "NON_ACCOMPLIES": return "non accomplies";
+      default: return s;
     }
   }
 }
@@ -460,12 +532,6 @@ class _Head extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Padding(
         padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
-        child: Text(
-          t,
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
+        child: Text(t, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
       );
 }

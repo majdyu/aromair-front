@@ -125,25 +125,35 @@ class InterventionsService {
 
 
   Future<void> updateMeta(
-    int id, {
-    DateTime? date,
-    bool? estPayementObligatoire,
-    String? remarque,
-    int? userId,
-  }) async {
-    final token = (await StorageHelper.getUser())?['token'];
-    final body = <String, dynamic>{};
-    if (date != null) body["date"] = date.toIso8601String();
-    if (estPayementObligatoire != null) body["estPayementObligatoire"] = estPayementObligatoire;
-    if (remarque != null) body["remarque"] = remarque;
-    if (userId != null) body["userId"] = userId;
+  int id, {
+  DateTime? date,
+  bool? estPayementObligatoire,
+  String? remarque,
+  double? payement,
+  int? userId,
+}) async {
+  final token = (await StorageHelper.getUser())?['token'];
+  final body = <String, dynamic>{};
+  print("--- updateMeta body avant envoi: $body");
+  print("token: $token"); 
+  if (date != null) body['date'] = date.toIso8601String();
+  if (estPayementObligatoire != null) body['estPayementObligatoire'] = estPayementObligatoire;
+  if (remarque != null) body['remarque'] = remarque;
+  if (payement != null) body['payement'] = payement;
+  if (userId != null) body['userId'] = userId;
 
-    await _dio.patch(
-      "interventions/updateMeta/$id",
-      data: body,
-      options: Options(headers: {if (token != null) 'Authorization': 'Bearer $token'}),
-    );
-  }
+  await _dio.patch(
+    'interventions/updateMeta/$id',
+    data: body.isEmpty ? {} : body,
+    options: Options(headers: {
+      if (token != null) 'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    }),
+  );
+}
+
+
 
   //------------------------------------------------------------
 
