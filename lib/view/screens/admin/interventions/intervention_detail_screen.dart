@@ -42,236 +42,416 @@ class InterventionDetailScreen extends StatelessWidget {
         return Scaffold(
           drawer: const AdminDrawer(),
           appBar: AppBar(
-            backgroundColor: const Color(0xFF75A6D1),
+            backgroundColor: const Color(0xFF0A1E40),
+            elevation: 0,
             centerTitle: true,
-            title: const Text("Consulter Intervention"),
+            title: const Text(
+              "Détails de l'Intervention",
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
             leading: Builder(
               builder: (ctx) => IconButton(
-                icon: const Icon(Icons.menu),
+                icon: const Icon(Icons.menu, color: Colors.white),
                 onPressed: () => Scaffold.of(ctx).openDrawer(),
               ),
             ),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.refresh, color: Colors.white),
+                onPressed: c.fetch,
+                tooltip: "Actualiser",
+              ),
+            ],
           ),
           body: Container(
-            color: const Color(0xFF75A6D1),
-            padding: const EdgeInsets.all(16),
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Color(0xFF0A1E40), // Dark navy
+                  Color(0xFF152A51), // Medium navy
+                  Color(0xFF1E3A8A), // Royal blue
+                ],
+                stops: [0.0, 0.5, 1.0],
+              ),
+            ),
+            padding: const EdgeInsets.all(20),
             child: Center(
               child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 1100),
+                constraints: const BoxConstraints(maxWidth: 1200),
                 child: Card(
-                  elevation: 8,
+                  elevation: 12,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(16),
                   ),
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+                    padding: const EdgeInsets.all(24),
                     child: c.isLoading.value
-                        ? const Center(child: CircularProgressIndicator())
+                        ? const Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                CircularProgressIndicator(
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Color(0xFF0A1E40),
+                                  ),
+                                ),
+                                SizedBox(height: 16),
+                                Text(
+                                  "Chargement des détails...",
+                                  style: TextStyle(color: Color(0xFF0A1E40)),
+                                ),
+                              ],
+                            ),
+                          )
                         : c.error.value != null
-                        ? Center(child: Text("Erreur: ${c.error.value}"))
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.error_outline,
+                                  color: Colors.red.shade400,
+                                  size: 48,
+                                ),
+                                const SizedBox(height: 16),
+                                const Text(
+                                  "Erreur de chargement",
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    color: Color(0xFF0A1E40),
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  c.error.value!,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(color: Colors.grey.shade600),
+                                ),
+                                const SizedBox(height: 20),
+                                ElevatedButton(
+                                  onPressed: c.fetch,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF0A1E40),
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 24,
+                                      vertical: 12,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
+                                  child: const Text("Réessayer"),
+                                ),
+                              ],
+                            ),
+                          )
                         : d == null
-                        ? const Center(child: Text("Aucune donnée"))
+                        ? const Center(
+                            child: Text(
+                              "Aucune donnée disponible",
+                              style: TextStyle(color: Color(0xFF0A1E40)),
+                            ),
+                          )
                         : SingleChildScrollView(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // ---------- En-tête ----------
-                                Wrap(
-                                  spacing: 16,
-                                  runSpacing: 16,
+                                // Header section
+                                Row(
                                   children: [
-                                    // Colonne gauche : infos clés
-                                    SizedBox(
-                                      width: 520,
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          _kv("Date", _fmtDate(d.date)),
-                                          _kv(
-                                            "Dernière intervention",
-                                            d.derniereIntervention != null
-                                                ? _fmtDate(
-                                                    d.derniereIntervention!,
-                                                  )
-                                                : "-",
-                                          ),
-                                          _kv("Technicien", d.userNom),
-                                          _kv("Client", d.clientNom),
-                                          const SizedBox(height: 8),
-                                          Wrap(
-                                            spacing: 8,
-                                            runSpacing: 8,
-                                            children: [
-                                              _statutChip(d.statut),
-                                              _chipWithIcon(
-                                                Icons.payments_outlined,
-                                                d.estPayementObligatoire
-                                                    ? "Paiement obligatoire"
-                                                    : "Paiement non obligatoire",
-                                              ),
-                                              _chipWithIcon(
-                                                Icons.attach_money_outlined,
-                                                "Montant: ${_fmtMoney(d.payement)}",
-                                              ),
-                                            ],
-                                          ),
-                                        ],
+                                    const Icon(
+                                      Icons.construction,
+                                      color: Color(0xFF0A1E40),
+                                      size: 28,
+                                    ),
+                                    const SizedBox(width: 12),
+                                    const Text(
+                                      "Détails de l'Intervention",
+                                      style: TextStyle(
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.w700,
+                                        color: Color(0xFF0A1E40),
                                       ),
                                     ),
-
-                                    // Colonne droite : édition remarque & paiement + actions
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
+                                    const Spacer(),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 6,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: _statusColor(
+                                          d.statut,
+                                        ).withOpacity(0.2),
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                      child: Row(
                                         children: [
-                                          _remarqueWidget(c),
-                                          const SizedBox(height: 12),
-                                          _paymentWidget(c), // ⬅️ NOUVEAU
-                                          const SizedBox(height: 10),
-                                          Wrap(
-                                            spacing: 8,
-                                            runSpacing: 8,
-                                            children: [
-                                              FilledButton.icon(
-                                                onPressed:
-                                                    c.detail.value == null
-                                                    ? null
-                                                    : () async {
-                                                        final ok =
-                                                            await showWorkToDoDialog(
-                                                              context,
-                                                              c.detail.value!,
-                                                            );
-                                                        if (ok == true)
-                                                          await c.fetch();
-                                                      },
-                                                icon: const Icon(
-                                                  Icons.list_alt,
-                                                ),
-                                                label: const Text(
-                                                  "Travail à faire",
-                                                ),
-                                              ),
-                                              _chipDisabled(
-                                                Icons.picture_as_pdf,
-                                                d.titreFicheMaintenance ??
-                                                    "Fiche maintenance",
-                                              ),
-                                              _chipDisabled(
-                                                Icons.photo_library_outlined,
-                                                "Médias (bientôt)",
-                                              ),
-                                            ],
+                                          Icon(
+                                            Icons.circle,
+                                            size: 12,
+                                            color: _statusColor(d.statut),
+                                          ),
+                                          const SizedBox(width: 6),
+                                          Text(
+                                            _prettyStatut(d.statut),
+                                            style: TextStyle(
+                                              color: _statusColor(d.statut),
+                                              fontWeight: FontWeight.w600,
+                                            ),
                                           ),
                                         ],
                                       ),
                                     ),
                                   ],
                                 ),
-
-                                const SizedBox(height: 22),
-
-                                // ---------- Diffuseurs ----------
-                                _sectionTitle("Diffuseurs"),
-                                const SizedBox(height: 8),
-                                _dataCard(
-                                  child: SingleChildScrollView(
-                                    scrollDirection: Axis.vertical,
-                                    child: DataTable(
-                                      showCheckboxColumn: false,
-                                      columnSpacing: 28,
-                                      headingRowHeight: 42,
-                                      dataRowMinHeight: 44,
-                                      dataRowMaxHeight: 56,
-                                      headingRowColor:
-                                          MaterialStateProperty.all(
-                                            const Color(0xFF5DB7A1),
-                                          ),
-                                      columns: const [
-                                        DataColumn(label: _Head("CAB")),
-                                        DataColumn(label: _Head("Modèle")),
-                                        DataColumn(label: _Head("Type carte")),
-                                        DataColumn(label: _Head("Emplacement")),
-                                      ],
-                                      rows: d.diffuseurs.map((r) {
-                                        return DataRow(
-                                          onSelectChanged: (_) {
-                                            Get.toNamed(
-                                              '/interventions/${d.id}/client-diffuseurs/${r.id}',
-                                            );
-                                          },
-                                          cells: [
-                                            DataCell(Text(r.cab)),
-                                            DataCell(Text(r.modeleDiffuseur)),
-                                            DataCell(Text(r.typeDiffuseur)),
-                                            DataCell(Text(r.emplacement)),
-                                          ],
-                                        );
-                                      }).toList(),
-                                    ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  "Numéro : ${d.id}",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey.shade600,
                                   ),
                                 ),
+                                const SizedBox(height: 24),
 
-                                const SizedBox(height: 22),
-
-                                // ---------- Alertes ----------
-                                _sectionTitle("Alertes"),
-                                const SizedBox(height: 8),
-                                _dataCard(
-                                  child: d.alertes.isEmpty
-                                      ? const Padding(
-                                          padding: EdgeInsets.all(16),
-                                          child: Text(
-                                            "Aucune alerte enregistrée.",
-                                          ),
-                                        )
-                                      : SingleChildScrollView(
-                                          scrollDirection: Axis.vertical,
-                                          child: DataTable(
-                                            showCheckboxColumn: false,
-                                            columnSpacing: 28,
-                                            headingRowHeight: 42,
-                                            dataRowMinHeight: 44,
-                                            dataRowMaxHeight: 56,
-                                            headingRowColor:
-                                                MaterialStateProperty.all(
-                                                  const Color(0xFF5DB7A1),
-                                                ),
-                                            columns: const [
-                                              DataColumn(label: _Head("Date")),
-                                              DataColumn(
-                                                label: _Head("Problème"),
+                                // Main content - two columns layout
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // Left column - Basic info
+                                    Expanded(
+                                      flex: 2,
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          _infoCard(
+                                            "Informations de base",
+                                            Icons.info_outline,
+                                            [
+                                              _infoRow(
+                                                "Date",
+                                                _fmtDate(d.date),
                                               ),
-                                              DataColumn(label: _Head("Cause")),
-                                              DataColumn(
-                                                label: _Head("État résolution"),
+                                              _infoRow(
+                                                "Dernière intervention",
+                                                d.derniereIntervention != null
+                                                    ? _fmtDate(
+                                                        d.derniereIntervention!,
+                                                      )
+                                                    : "-",
+                                              ),
+                                              _infoRow("Technicien", d.userNom),
+                                              _infoRow("Client", d.clientNom),
+                                              _infoRow(
+                                                "Paiement obligatoire",
+                                                d.estPayementObligatoire
+                                                    ? "Oui"
+                                                    : "Non",
+                                              ),
+                                              _infoRow(
+                                                "Montant",
+                                                "${_fmtMoney(d.payement)} TND",
                                               ),
                                             ],
-                                            rows: d.alertes.map((a) {
-                                              return DataRow(
-                                                onSelectChanged: (_) =>
-                                                    Get.toNamed(
-                                                      '/alertes/${a.id}',
-                                                    ),
-                                                cells: [
-                                                  DataCell(Text(a.date)),
-                                                  DataCell(
-                                                    Text(a.probleme ?? '-'),
-                                                  ),
-                                                  DataCell(
-                                                    Text(a.cause ?? '-'),
-                                                  ),
-                                                  DataCell(
-                                                    Text(a.etatResolution),
-                                                  ),
-                                                ],
-                                              );
-                                            }).toList(),
                                           ),
-                                        ),
+                                          const SizedBox(height: 16),
+                                          _remarqueWidget(c),
+                                        ],
+                                      ),
+                                    ),
+
+                                    const SizedBox(width: 24),
+
+                                    Expanded(
+                                      flex: 1,
+                                      child: Column(
+                                        children: [
+                                          _actionCard("Actions", Icons.settings, [
+                                            ElevatedButton.icon(
+                                              onPressed: c.detail.value == null
+                                                  ? null
+                                                  : () async {
+                                                      final ok =
+                                                          await showWorkToDoDialog(
+                                                            context,
+                                                            c.detail.value!,
+                                                          );
+                                                      if (ok == true)
+                                                        await c.fetch();
+                                                    },
+                                              icon: const Icon(
+                                                Icons.list_alt,
+                                                size: 20,
+                                              ),
+                                              label: const Text(
+                                                "Travail à faire",
+                                              ),
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: const Color(
+                                                  0xFF0A1E40,
+                                                ),
+                                                foregroundColor: Colors.white,
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 16,
+                                                      vertical: 12,
+                                                    ),
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(12),
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(height: 8),
+
+                                            OutlinedButton.icon(
+                                              onPressed: () {},
+                                              icon: const Icon(
+                                                Icons.photo_library_outlined,
+                                                size: 20,
+                                              ),
+                                              label: const Text(
+                                                "Médias (bientôt)",
+                                              ),
+                                              style: OutlinedButton.styleFrom(
+                                                foregroundColor: const Color(
+                                                  0xFF0A1E40,
+                                                ),
+                                                side: const BorderSide(
+                                                  color: Color(0xFF0A1E40),
+                                                ),
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 16,
+                                                      vertical: 12,
+                                                    ),
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(12),
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(height: 8),
+
+                                            OutlinedButton.icon(
+                                              onPressed: () {},
+                                              icon: const Icon(
+                                                Icons.picture_as_pdf,
+                                                size: 20,
+                                              ),
+                                              label: Text(
+                                                d.titreFicheMaintenance ??
+                                                    "Fiche maintenance",
+                                              ),
+                                              style: OutlinedButton.styleFrom(
+                                                foregroundColor: const Color(
+                                                  0xFF0A1E40,
+                                                ),
+                                                side: const BorderSide(
+                                                  color: Color(0xFF0A1E40),
+                                                ),
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 16,
+                                                      vertical: 12,
+                                                    ),
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(12),
+                                                ),
+                                              ),
+                                            ),
+                                          ]),
+                                          const SizedBox(height: 16),
+                                          _paymentWidget(c),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
                                 ),
+
+                                const SizedBox(height: 24),
+
+                                // Diffuseurs section
+                                _sectionTitle("Diffuseurs"),
+                                const SizedBox(height: 12),
+                                _dataTableCard(
+                                  columns: const [
+                                    DataColumn(label: _TableHeader("CAB")),
+                                    DataColumn(label: _TableHeader("Modèle")),
+                                    DataColumn(
+                                      label: _TableHeader("Type carte"),
+                                    ),
+                                    DataColumn(
+                                      label: _TableHeader("Emplacement"),
+                                    ),
+                                  ],
+                                  rows: d.diffuseurs.map((r) {
+                                    return DataRow(
+                                      onSelectChanged: (_) {
+                                        Get.toNamed(
+                                          '/interventions/${d.id}/client-diffuseurs/${r.id}',
+                                        );
+                                      },
+                                      cells: [
+                                        DataCell(Text(r.cab)),
+                                        DataCell(Text(r.modeleDiffuseur)),
+                                        DataCell(Text(r.typeDiffuseur)),
+                                        DataCell(Text(r.emplacement)),
+                                      ],
+                                    );
+                                  }).toList(),
+                                ),
+
+                                const SizedBox(height: 24),
+
+                                // Alertes section
+                                _sectionTitle("Alertes"),
+                                const SizedBox(height: 12),
+                                d.alertes.isEmpty
+                                    ? _emptyStateCard(
+                                        Icons.notifications_none,
+                                        "Aucune alerte enregistrée",
+                                      )
+                                    : _dataTableCard(
+                                        columns: const [
+                                          DataColumn(
+                                            label: _TableHeader("Date"),
+                                          ),
+                                          DataColumn(
+                                            label: _TableHeader("Problème"),
+                                          ),
+                                          DataColumn(
+                                            label: _TableHeader("Cause"),
+                                          ),
+                                          DataColumn(
+                                            label: _TableHeader(
+                                              "État résolution",
+                                            ),
+                                          ),
+                                        ],
+                                        rows: d.alertes.map((a) {
+                                          return DataRow(
+                                            onSelectChanged: (_) =>
+                                                Get.toNamed('/alertes/${a.id}'),
+                                            cells: [
+                                              DataCell(Text(a.date)),
+                                              DataCell(Text(a.probleme ?? '-')),
+                                              DataCell(Text(a.cause ?? '-')),
+                                              DataCell(Text(a.etatResolution)),
+                                            ],
+                                          );
+                                        }).toList(),
+                                      ),
                               ],
                             ),
                           ),
@@ -294,115 +474,100 @@ class InterventionDetailScreen extends StatelessWidget {
       c.isEditingRemark.value = false;
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              "Remarque / Règlement",
-              style: TextStyle(fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(width: 6),
-            Obx(
-              () => !c.isEditingRemark.value
-                  ? IconButton(
-                      tooltip: 'Modifier',
-                      icon: const Icon(Icons.edit_outlined, size: 18),
-                      onPressed: c.startEditRemark,
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                    )
-                  : const SizedBox.shrink(),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Obx(
-          () => c.isEditingRemark.value
-              ? SizedBox(
-                  width: 420,
-                  child: Focus(
-                    onKey: (node, event) {
-                      if (event.logicalKey.keyLabel == 'Escape') {
-                        _cancelEdit();
-                        return KeyEventResult.handled;
-                      }
-                      return KeyEventResult.ignored;
-                    },
-                    child: TextField(
-                      controller: c.remarkCtrl,
-                      autofocus: true,
-                      minLines: 1,
-                      maxLines: 4,
-                      onSubmitted: (_) => c.submitRemark(),
-                      decoration: InputDecoration(
-                        hintText: 'Saisir puis Entrée pour enregistrer',
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 10,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        suffixIcon: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              tooltip: 'Annuler (Échap)',
-                              icon: const Icon(Icons.close),
-                              onPressed: c.isSavingRemark.value
-                                  ? null
-                                  : _cancelEdit,
-                            ),
-                            c.isSavingRemark.value
-                                ? const Padding(
-                                    padding: EdgeInsets.all(10),
-                                    child: SizedBox(
-                                      width: 18,
-                                      height: 18,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                      ),
-                                    ),
-                                  )
-                                : IconButton(
-                                    tooltip: 'Enregistrer (Entrée)',
-                                    icon: const Icon(Icons.check),
-                                    onPressed: c.submitRemark,
-                                  ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                )
-              : InkWell(
-                  onTap: c.startEditRemark,
-                  borderRadius: BorderRadius.circular(10),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
+    return _infoCard("Remarque / Règlement", Icons.note_outlined, [
+      Obx(
+        () => c.isEditingRemark.value
+            ? Focus(
+                onKey: (node, event) {
+                  if (event.logicalKey.keyLabel == 'Escape') {
+                    _cancelEdit();
+                    return KeyEventResult.handled;
+                  }
+                  return KeyEventResult.ignored;
+                },
+                child: TextField(
+                  controller: c.remarkCtrl,
+                  autofocus: true,
+                  minLines: 3,
+                  maxLines: 5,
+                  onSubmitted: (_) => c.submitRemark(),
+                  decoration: InputDecoration(
+                    hintText: 'Saisir puis Entrée pour enregistrer',
+                    contentPadding: const EdgeInsets.symmetric(
                       horizontal: 12,
                       vertical: 10,
                     ),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.black12),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(color: Color(0xFF0A1E40)),
                     ),
-                    child: Text(
-                      (() {
-                        final t = c.remarkCtrl.text.trim();
-                        return t.isEmpty ? '-' : t;
-                      })(),
-                      style: const TextStyle(height: 1.3),
+                    suffixIcon: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          tooltip: 'Annuler (Échap)',
+                          icon: const Icon(Icons.close),
+                          onPressed: c.isSavingRemark.value
+                              ? null
+                              : _cancelEdit,
+                        ),
+                        c.isSavingRemark.value
+                            ? const Padding(
+                                padding: EdgeInsets.all(10),
+                                child: SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Color(0xFF0A1E40),
+                                    ),
+                                  ),
+                                ),
+                              )
+                            : IconButton(
+                                tooltip: 'Enregistrer (Entrée)',
+                                icon: const Icon(Icons.check),
+                                onPressed: c.submitRemark,
+                              ),
+                      ],
                     ),
                   ),
                 ),
-        ),
-      ],
-    );
+              )
+            : InkWell(
+                onTap: c.startEditRemark,
+                borderRadius: BorderRadius.circular(10),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.grey.shade300),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          (() {
+                            final t = c.remarkCtrl.text.trim();
+                            return t.isEmpty
+                                ? 'Cliquez pour ajouter une remarque...'
+                                : t;
+                          })(),
+                          style: const TextStyle(height: 1.3),
+                        ),
+                      ),
+                      const Icon(Icons.edit_outlined, size: 18),
+                    ],
+                  ),
+                ),
+              ),
+      ),
+    ]);
   }
 
   // ---------- Paiement (édition inline) ----------
@@ -417,225 +582,307 @@ class InterventionDetailScreen extends StatelessWidget {
       c.isEditingPay.value = false;
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              "Montant à payer (DT)",
-              style: TextStyle(fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(width: 6),
-            Obx(
-              () => !c.isEditingPay.value
-                  ? IconButton(
-                      tooltip: 'Modifier',
-                      icon: const Icon(Icons.edit_outlined, size: 18),
-                      onPressed: c.startEditPay,
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                    )
-                  : const SizedBox.shrink(),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Obx(
-          () => c.isEditingPay.value
-              ? SizedBox(
-                  width: 260,
-                  child: Focus(
-                    onKey: (node, event) {
-                      if (event.logicalKey.keyLabel == 'Escape') {
-                        _cancelEdit();
-                        return KeyEventResult.handled;
-                      }
-                      return KeyEventResult.ignored;
-                    },
-                    child: TextField(
-                      controller: c.payCtrl,
-                      autofocus: true,
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
-                      inputFormatters: [
-                        FilteringTextInputFormatter.allow(RegExp(r'[0-9\.,]')),
-                      ],
-                      onSubmitted: (_) => c.submitPay(),
-                      decoration: InputDecoration(
-                        hintText: '0.000',
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 10,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        suffixIcon: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              tooltip: 'Annuler (Échap)',
-                              icon: const Icon(Icons.close),
-                              onPressed: c.isSavingPay.value
-                                  ? null
-                                  : _cancelEdit,
-                            ),
-                            c.isSavingPay.value
-                                ? const Padding(
-                                    padding: EdgeInsets.all(10),
-                                    child: SizedBox(
-                                      width: 18,
-                                      height: 18,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                      ),
-                                    ),
-                                  )
-                                : IconButton(
-                                    tooltip: 'Enregistrer (Entrée)',
-                                    icon: const Icon(Icons.check),
-                                    onPressed: c.submitPay,
-                                  ),
-                          ],
-                        ),
-                      ),
-                    ),
+    return _infoCard("Montant à payer (TND)", Icons.payments_outlined, [
+      Obx(
+        () => c.isEditingPay.value
+            ? Focus(
+                onKey: (node, event) {
+                  if (event.logicalKey.keyLabel == 'Escape') {
+                    _cancelEdit();
+                    return KeyEventResult.handled;
+                  }
+                  return KeyEventResult.ignored;
+                },
+                child: TextField(
+                  controller: c.payCtrl,
+                  autofocus: true,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
                   ),
-                )
-              : InkWell(
-                  onTap: c.startEditPay,
-                  borderRadius: BorderRadius.circular(10),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'[0-9\.,]')),
+                  ],
+                  onSubmitted: (_) => c.submitPay(),
+                  decoration: InputDecoration(
+                    hintText: '0.000',
+                    contentPadding: const EdgeInsets.symmetric(
                       horizontal: 12,
                       vertical: 10,
                     ),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.black12),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(color: Color(0xFF0A1E40)),
                     ),
-                    child: Text(
-                      _fmtMoney(c.detail.value?.payement),
-                      style: const TextStyle(height: 1.3),
+                    suffixIcon: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          tooltip: 'Annuler (Échap)',
+                          icon: const Icon(Icons.close),
+                          onPressed: c.isSavingPay.value ? null : _cancelEdit,
+                        ),
+                        c.isSavingPay.value
+                            ? const Padding(
+                                padding: EdgeInsets.all(10),
+                                child: SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Color(0xFF0A1E40),
+                                    ),
+                                  ),
+                                ),
+                              )
+                            : IconButton(
+                                tooltip: 'Enregistrer (Entrée)',
+                                icon: const Icon(Icons.check),
+                                onPressed: c.submitPay,
+                              ),
+                      ],
                     ),
                   ),
                 ),
+              )
+            : InkWell(
+                onTap: c.startEditPay,
+                borderRadius: BorderRadius.circular(10),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.grey.shade300),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          _fmtMoney(c.detail.value?.payement),
+                          style: const TextStyle(
+                            height: 1.3,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      const Icon(Icons.edit_outlined, size: 18),
+                    ],
+                  ),
+                ),
+              ),
+      ),
+    ]);
+  }
+
+  // ---------- UI Components ----------
+  Widget _infoCard(String title, IconData icon, List<Widget> children) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon, color: const Color(0xFF0A1E40), size: 20),
+                const SizedBox(width: 8),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF0A1E40),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            ...children,
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _actionCard(String title, IconData icon, List<Widget> children) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon, color: const Color(0xFF0A1E40), size: 20),
+                const SizedBox(width: 8),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF0A1E40),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Column(children: children),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _infoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 160,
+            child: Text(
+              "$label:",
+              style: const TextStyle(fontWeight: FontWeight.w500),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(value, style: TextStyle(color: Colors.grey.shade700)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _sectionTitle(String title) {
+    return Row(
+      children: [
+        Container(
+          width: 4,
+          height: 20,
+          decoration: BoxDecoration(
+            color: const Color(0xFF0A1E40),
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF0A1E40),
+          ),
         ),
       ],
     );
   }
 
-  // ---------- Helpers ----------
-  Widget _sectionTitle(String t) => Row(
-    children: [
-      Container(
-        width: 4,
-        height: 18,
-        decoration: BoxDecoration(
-          color: const Color(0xFF5DB7A1),
-          borderRadius: BorderRadius.circular(2),
+  Widget _dataTableCard({
+    required List<DataColumn> columns,
+    required List<DataRow> rows,
+  }) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Container(
+            constraints: const BoxConstraints(minWidth: 800),
+            child: DataTable(
+              showCheckboxColumn: false,
+              columnSpacing: 24,
+              headingRowHeight: 48,
+              dataRowMinHeight: 48,
+              headingRowColor: MaterialStateProperty.all(
+                const Color(0xFF0A1E40).withOpacity(0.8),
+              ),
+              columns: columns,
+              rows: rows,
+            ),
+          ),
         ),
       ),
-      const SizedBox(width: 8),
-      Text(
-        t,
-        style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
-      ),
-    ],
-  );
-
-  Widget _dataCard({required Widget child}) => ClipRRect(
-    borderRadius: BorderRadius.circular(12),
-    child: Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: Colors.black12),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: child,
-    ),
-  );
-
-  Widget _kv(String k, String v) => Padding(
-    padding: const EdgeInsets.only(bottom: 6),
-    child: RichText(
-      text: TextSpan(
-        style: const TextStyle(color: Colors.black87, fontSize: 14),
-        children: [
-          TextSpan(
-            text: "$k: ",
-            style: const TextStyle(fontWeight: FontWeight.w600),
-          ),
-          TextSpan(text: v),
-        ],
-      ),
-    ),
-  );
-
-  static Widget _chipDisabled(IconData i, String label) => Chip(
-    avatar: Icon(i, size: 18),
-    label: Text(label),
-    backgroundColor: const Color(0xFFF7F7F7),
-    side: BorderSide.none,
-  );
-
-  static Widget _chipWithIcon(IconData i, String label) => Chip(
-    avatar: Icon(i, size: 18),
-    label: Text(label),
-    backgroundColor: const Color(0xFFF7F7F7),
-    side: BorderSide.none,
-  );
-
-  static Color _statutColor(String s) {
-    switch (s) {
-      case "TRAITE":
-        return const Color(0xFF2EB85C);
-      case "EN_RETARD":
-        return const Color(0xFFDC3545);
-      case "NON_ACCOMPLIES":
-        return const Color(0xFFFF7F50);
-      case "EN_COURS":
-      default:
-        return const Color(0xFFFFC107);
-    }
+    );
   }
 
-  static Widget _statutChip(String statut) => Chip(
-    avatar: Icon(Icons.brightness_1, size: 16, color: _statutColor(statut)),
-    label: Text(_prettyStatut(statut)),
-    backgroundColor: const Color(0xFFF7F7F7),
-    side: BorderSide.none,
-  );
+  Widget _emptyStateCard(IconData icon, String message) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 48, color: Colors.grey.shade400),
+              const SizedBox(height: 12),
+              Text(
+                message,
+                style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  static Color _statusColor(String s) {
+    switch (s) {
+      case "TRAITE":
+        return const Color(0xFF2EB85C); // Green
+      case "EN_RETARD":
+        return const Color(0xFFDC3545); // Red
+      case "NON_ACCOMPLIES":
+        return const Color(0xFFFF7F50); // Orange
+      case "EN_COURS":
+      default:
+        return const Color(0xFFFFC107); // Amber
+    }
+  }
 
   static String _prettyStatut(String s) {
     switch (s) {
       case "EN_COURS":
-        return "en cours";
+        return "En cours";
       case "TRAITE":
-        return "traité";
+        return "Traité";
       case "EN_RETARD":
-        return "en retard";
+        return "En retard";
       case "NON_ACCOMPLIES":
-        return "non accomplies";
+        return "Non accomplies";
       default:
         return s;
     }
   }
 }
 
-class _Head extends StatelessWidget {
-  final String t;
-  const _Head(this.t);
+class _TableHeader extends StatelessWidget {
+  final String text;
+  const _TableHeader(this.text);
+
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
-    child: Text(
-      t,
-      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
-    ),
-  );
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+      child: Text(
+        text,
+        style: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
 }

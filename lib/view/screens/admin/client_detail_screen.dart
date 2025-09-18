@@ -22,128 +22,334 @@ class ClientDetailScreen extends StatelessWidget {
         return Scaffold(
           drawer: const AdminDrawer(),
           appBar: AppBar(
-            backgroundColor: const Color(0xFF75A6D1),
+            backgroundColor: const Color(0xFF0A1E40),
+            elevation: 0,
             centerTitle: true,
-            title: const Text("Visualiser Client"),
+            title: const Text(
+              "Détails du Client",
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
             leading: Builder(
               builder: (ctx) => IconButton(
-                icon: const Icon(Icons.menu),
+                icon: const Icon(Icons.menu, color: Colors.white),
                 onPressed: () => Scaffold.of(ctx).openDrawer(),
               ),
             ),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.refresh, color: Colors.white),
+                onPressed: c.fetch,
+                tooltip: "Actualiser",
+              ),
+            ],
           ),
           body: Container(
-            color: const Color(0xFF75A6D1),
-            padding: const EdgeInsets.all(16),
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Color(0xFF0A1E40), // Dark navy
+                  Color(0xFF152A51), // Medium navy
+                  Color(0xFF1E3A8A), // Royal blue
+                ],
+                stops: [0.0, 0.5, 1.0],
+              ),
+            ),
+            padding: const EdgeInsets.all(20),
             child: Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 1200),
                 child: Card(
-                  elevation: 8,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  elevation: 12,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+                    padding: const EdgeInsets.all(24),
                     child: c.isLoading.value
-                        ? const Center(child: CircularProgressIndicator())
+                        ? const Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                CircularProgressIndicator(
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Color(0xFF0A1E40),
+                                  ),
+                                ),
+                                SizedBox(height: 16),
+                                Text(
+                                  "Chargement des détails...",
+                                  style: TextStyle(color: Color(0xFF0A1E40)),
+                                ),
+                              ],
+                            ),
+                          )
                         : c.error.value != null
-                            ? Center(child: Text("Erreur: ${c.error.value}"))
-                            : d == null
-                                ? const Center(child: Text("Aucune donnée"))
-                                : SingleChildScrollView(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        // ---------- Coordonnées (editable) + Satisfaction ----------
-                                        _sectionContainer(
-                                          child: Column(
-                                            children: [
-                                              Row(
-                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                children: [
-                                                  const Text(
-                                                    "Coordonnées",
-                                                    style: TextStyle(
-                                                      fontSize: 16,
-                                                      fontWeight: FontWeight.w800,
-                                                    ),
-                                                  ),
-                                                  Obx(() {
-                                                    if (!c.isEditing.value) {
-                                                      return IconButton(
-                                                        tooltip: 'Modifier',
-                                                        onPressed: c.startEdit,
-                                                        icon: const Icon(Icons.edit_outlined),
-                                                      );
-                                                    }
-                                                    return Row(
-                                                      children: [
-                                                        TextButton.icon(
-                                                          onPressed: c.cancelEdit,
-                                                          icon: const Icon(Icons.close),
-                                                          label: const Text('Annuler'),
-                                                        ),
-                                                        const SizedBox(width: 8),
-                                                        ElevatedButton.icon(
-                                                          onPressed: c.save,
-                                                          icon: const Icon(Icons.check),
-                                                          label: const Text('Enregistrer'),
-                                                        ),
-                                                      ],
-                                                    );
-                                                  }),
-                                                ],
-                                              ),
-                                              const SizedBox(height: 10),
-                                              Row(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: [
-                                                  Expanded(child: _coordsBlock(d, c)),
-                                                  const SizedBox(width: 16),
-                                                  _satisfactionGauge(d.satisfaction),
-                                                ],
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        const SizedBox(height: 18),
-
-                                        // ---------- Diffuseurs ----------
-                                        _sectionTitle(
-                                          "Diffuseurs",
-                                          trailing: IconButton(
-                                            onPressed: () => showAffecterClientDiffuseurDialog(context, c),
-                                            icon: const Icon(Icons.add),
-                                            color: const Color(0xFF5DB7A1),
-                                          ),
-                                        ),
-                                        const SizedBox(height: 8),
-                                        _card(_diffuseursTable(context, d.diffuseurs, c)),
-                                        const SizedBox(height: 18),
-
-                                        // ---------- Interventions ----------
-                                        _sectionTitle("Interventions"),
-                                        const SizedBox(height: 8),
-                                        _card(_interventionsTable(d.interventions)),
-                                        const SizedBox(height: 18),
-
-                                        // ---------- Réclamations ----------
-                                        _sectionTitle("Réclamations"),
-                                        const SizedBox(height: 8),
-                                        _card(
-                                          d.reclamations.isEmpty
-                                              ? const Padding(
-                                                  padding: EdgeInsets.all(16),
-                                                  child: Text("Aucune réclamation."),
-                                                )
-                                              : _reclamationsTable(d.reclamations),
-                                        ),
-                                      ],
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.error_outline,
+                                  color: Colors.red.shade400,
+                                  size: 48,
+                                ),
+                                const SizedBox(height: 16),
+                                const Text(
+                                  "Erreur de chargement",
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    color: Color(0xFF0A1E40),
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  c.error.value!,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(color: Colors.grey.shade600),
+                                ),
+                                const SizedBox(height: 20),
+                                ElevatedButton(
+                                  onPressed: c.fetch,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF0A1E40),
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 24,
+                                      vertical: 12,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
                                     ),
                                   ),
+                                  child: const Text("Réessayer"),
+                                ),
+                              ],
+                            ),
+                          )
+                        : d == null
+                        ? const Center(
+                            child: Text(
+                              "Aucune donnée disponible",
+                              style: TextStyle(color: Color(0xFF0A1E40)),
+                            ),
+                          )
+                        : SingleChildScrollView(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Header section
+                                Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.person,
+                                      color: Color(0xFF0A1E40),
+                                      size: 28,
+                                    ),
+                                    const SizedBox(width: 12),
+                                    const Text(
+                                      "Détails du Client",
+                                      style: TextStyle(
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.w700,
+                                        color: Color(0xFF0A1E40),
+                                      ),
+                                    ),
+                                    const Spacer(),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 6,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: const Color(
+                                          0xFF0A1E40,
+                                        ).withOpacity(0.2),
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            Icons.circle,
+                                            size: 12,
+                                            color: const Color(0xFF0A1E40),
+                                          ),
+                                          const SizedBox(width: 6),
+                                          Text(
+                                            d.nature ?? "Client",
+                                            style: const TextStyle(
+                                              color: Color(0xFF0A1E40),
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  "ID : ${d.id}",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ),
+                                const SizedBox(height: 24),
+
+                                // ---------- Coordonnées (editable) + Satisfaction ----------
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Expanded(
+                                      flex: 3,
+                                      child: _infoCard(
+                                        "Coordonnées",
+                                        Icons.contact_page,
+                                        [
+                                          const SizedBox(height: 10),
+                                          _coordsBlock(d, c),
+                                        ],
+                                        trailing: Obx(() {
+                                          if (!c.isEditing.value) {
+                                            return IconButton(
+                                              tooltip: 'Modifier',
+                                              onPressed: c.startEdit,
+                                              icon: const Icon(
+                                                Icons.edit_outlined,
+                                              ),
+                                            );
+                                          }
+                                          return Row(
+                                            children: [
+                                              TextButton.icon(
+                                                onPressed: c.cancelEdit,
+                                                icon: const Icon(Icons.close),
+                                                label: const Text('Annuler'),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              ElevatedButton.icon(
+                                                onPressed: c.save,
+                                                icon: const Icon(Icons.check),
+                                                label: const Text(
+                                                  'Enregistrer',
+                                                ),
+                                              ),
+                                            ],
+                                          );
+                                        }),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 24),
+                                    Expanded(
+                                      flex: 1,
+                                      child: _infoCard(
+                                        "Satisfaction",
+                                        Icons.sentiment_satisfied,
+                                        [
+                                          Center(
+                                            child: _satisfactionGauge(
+                                              d.satisfaction,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+
+                                const SizedBox(height: 24),
+
+                                // ---------- Diffuseurs ----------
+                                _sectionTitle("Diffuseurs"),
+                                const SizedBox(height: 12),
+                                _dataTableCard(
+                                  columns: [
+                                    const DataColumn(
+                                      label: _TableHeader("CAB"),
+                                    ),
+                                    const DataColumn(
+                                      label: _TableHeader("Modèle"),
+                                    ),
+                                    const DataColumn(
+                                      label: _TableHeader("Type_Carte"),
+                                    ),
+                                    const DataColumn(
+                                      label: _TableHeader("Emplacement"),
+                                    ),
+                                    if (c.isSuperAdmin)
+                                      const DataColumn(
+                                        label: _TableHeader("Actions"),
+                                      ),
+                                  ],
+                                  rows: _diffuseursTable(
+                                    context,
+                                    d.diffuseurs,
+                                    c,
+                                  ),
+                                ),
+                                const SizedBox(height: 24),
+
+                                // ---------- Interventions ----------
+                                _sectionTitle("Interventions"),
+                                const SizedBox(height: 12),
+                                _dataTableCard(
+                                  columns: const [
+                                    DataColumn(label: _TableHeader("Date")),
+                                    DataColumn(
+                                      label: _TableHeader("Technicien"),
+                                    ),
+                                    DataColumn(label: _TableHeader("Alertes")),
+                                    DataColumn(label: _TableHeader("Statut")),
+                                  ],
+                                  rows: _interventionsTable(d.interventions),
+                                ),
+                                const SizedBox(height: 24),
+
+                                // ---------- Réclamations ----------
+                                _sectionTitle("Réclamations"),
+                                const SizedBox(height: 12),
+                                d.reclamations.isEmpty
+                                    ? _emptyStateCard(
+                                        Icons.report_problem,
+                                        "Aucune réclamation enregistrée",
+                                      )
+                                    : _dataTableCard(
+                                        columns: const [
+                                          DataColumn(
+                                            label: _TableHeader("Date"),
+                                          ),
+                                          DataColumn(
+                                            label: _TableHeader("Problème"),
+                                          ),
+                                          DataColumn(
+                                            label: _TableHeader("Technicien"),
+                                          ),
+                                          DataColumn(
+                                            label: _TableHeader("Statut"),
+                                          ),
+                                        ],
+                                        rows: _reclamationsTable(
+                                          d.reclamations,
+                                        ),
+                                      ),
+                              ],
+                            ),
+                          ),
                   ),
                 ),
               ),
             ),
+          ),
+          floatingActionButton: FloatingActionButton(
+            onPressed: () => showAffecterClientDiffuseurDialog(context, c),
+            backgroundColor: const Color(0xFF0A1E40),
+            child: const Icon(Icons.add, color: Colors.white),
           ),
         );
       },
@@ -158,35 +364,46 @@ class ClientDetailScreen extends StatelessWidget {
   static Widget _coordsBlock(ClientDetail d, ClientDetailController c) {
     // chips (lecture)
     Widget chip(String t) => Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-          margin: const EdgeInsets.only(right: 6, bottom: 6),
-          decoration: BoxDecoration(
-            color: const Color(0xFF5DB7A1).withOpacity(0.15),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: const Color(0xFF5DB7A1)),
-          ),
-          child: Text(t, style: const TextStyle(fontWeight: FontWeight.w600)),
-        );
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      margin: const EdgeInsets.only(right: 6, bottom: 6),
+      decoration: BoxDecoration(
+        color: const Color(0xFF0A1E40).withOpacity(0.15),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFF0A1E40)),
+      ),
+      child: Text(t, style: const TextStyle(fontWeight: FontWeight.w600)),
+    );
 
     // kv (lecture)
     Widget kv(String k, String v) => Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: Row(
-            children: [
-              Text("$k: ", style: const TextStyle(fontWeight: FontWeight.w700)),
-              Expanded(child: Text(v)),
-            ],
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 140,
+            child: Text(
+              "$k:",
+              style: const TextStyle(fontWeight: FontWeight.w500),
+            ),
           ),
-        );
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(v, style: TextStyle(color: Colors.grey.shade700)),
+          ),
+        ],
+      ),
+    );
 
     // form decorations (édition)
     InputDecoration deco(String label) => InputDecoration(
-          labelText: label,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-          isDense: true,
-        );
+      labelText: label,
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+      isDense: true,
+    );
 
-    Widget numberField(TextEditingController ctrl, String label) => TextFormField(
+    Widget numberField(TextEditingController ctrl, String label) =>
+        TextFormField(
           controller: ctrl,
           decoration: deco(label),
           keyboardType: TextInputType.number,
@@ -198,13 +415,15 @@ class ClientDetailScreen extends StatelessWidget {
         );
 
     Widget dropdown(String label, List<String> items, RxnString value) => Obx(
-          () => DropdownButtonFormField<String>(
-            value: value.value,
-            items: items.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
-            onChanged: (v) => value.value = v,
-            decoration: deco(label),
-          ),
-        );
+      () => DropdownButtonFormField<String>(
+        value: value.value,
+        items: items
+            .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+            .toList(),
+        onChanged: (v) => value.value = v,
+        decoration: deco(label),
+      ),
+    );
 
     final rawAdr = d.adresse.trim();
 
@@ -214,12 +433,17 @@ class ClientDetailScreen extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Wrap(children: [
-              if (d.nature != null) chip(d.nature! == "ENTREPRISE" ? "Entreprise" : "Particulier"),
-              if (d.type != null) chip("Type: ${d.type}"),
-              if (d.importance != null) chip("Importance: ${d.importance}"),
-              if (d.algoPlan != null) chip("Algo: ${d.algoPlan}"),
-            ]),
+            Wrap(
+              children: [
+                if (d.nature != null)
+                  chip(
+                    d.nature! == "ENTREPRISE" ? "Entreprise" : "Particulier",
+                  ),
+                if (d.type != null) chip("Type: ${d.type}"),
+                if (d.importance != null) chip("Importance: ${d.importance}"),
+                if (d.algoPlan != null) chip("Algo: ${d.algoPlan}"),
+              ],
+            ),
             const SizedBox(height: 10),
             kv("Nom de Client", d.nom),
             Row(
@@ -233,23 +457,46 @@ class ClientDetailScreen extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  const Text("Adresse: ", style: TextStyle(fontWeight: FontWeight.w700)),
+                  SizedBox(
+                    width: 140,
+                    child: const Text(
+                      "Adresse:",
+                      style: TextStyle(fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
                   IconButton(
                     tooltip: "Ouvrir dans Google Maps",
                     onPressed: c.openMaps,
                     icon: const Icon(Icons.map_outlined),
-                    color: const Color(0xFF3E7DA6),
+                    color: const Color(0xFF0A1E40),
                     splashRadius: 20,
                   ),
-                  if (!(rawAdr.startsWith('http://') || rawAdr.startsWith('https://')))
-                    Expanded(child: Text(rawAdr.isEmpty ? '-' : rawAdr)),
+                  if (!(rawAdr.startsWith('http://') ||
+                      rawAdr.startsWith('https://')))
+                    Expanded(
+                      child: Text(
+                        rawAdr.isEmpty ? '-' : rawAdr,
+                        style: TextStyle(color: Colors.grey.shade700),
+                      ),
+                    ),
                 ],
               ),
             ),
             Row(
               children: [
-                Expanded(child: kv("Fr Livraison (jour)", (d.frequenceLivraisonParJour ?? 0).toString())),
-                Expanded(child: kv("Fr Visite (jour)", (d.frequenceVisiteParJour ?? 0).toString())),
+                Expanded(
+                  child: kv(
+                    "Fr Livraison (jour)",
+                    (d.frequenceLivraisonParJour ?? 0).toString(),
+                  ),
+                ),
+                Expanded(
+                  child: kv(
+                    "Fr Visite (jour)",
+                    (d.frequenceVisiteParJour ?? 0).toString(),
+                  ),
+                ),
               ],
             ),
           ],
@@ -263,39 +510,85 @@ class ClientDetailScreen extends StatelessWidget {
           children: [
             Row(
               children: [
-                Expanded(child: dropdown("Nature", ClientDetailController.natureOptions, c.nature)),
+                Expanded(
+                  child: dropdown(
+                    "Nature",
+                    ClientDetailController.natureOptions,
+                    c.nature,
+                  ),
+                ),
                 const SizedBox(width: 10),
-                Expanded(child: dropdown("Type", ClientDetailController.typeOptions, c.type)),
+                Expanded(
+                  child: dropdown(
+                    "Type",
+                    ClientDetailController.typeOptions,
+                    c.type,
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 10),
             Row(
               children: [
-                Expanded(child: dropdown("Importance", ClientDetailController.importanceOptions, c.importance)),
+                Expanded(
+                  child: dropdown(
+                    "Importance",
+                    ClientDetailController.importanceOptions,
+                    c.importance,
+                  ),
+                ),
                 const SizedBox(width: 10),
-                Expanded(child: dropdown("Algo", ClientDetailController.algoOptions, c.algo)),
+                Expanded(
+                  child: dropdown(
+                    "Algo",
+                    ClientDetailController.algoOptions,
+                    c.algo,
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 12),
             Row(
               children: [
-                Expanded(child: TextFormField(controller: c.nomCtrl, decoration: deco("Nom de Client"))),
+                Expanded(
+                  child: TextFormField(
+                    controller: c.nomCtrl,
+                    decoration: deco("Nom de Client"),
+                  ),
+                ),
                 const SizedBox(width: 10),
-                Expanded(child: TextFormField(controller: c.telCtrl, decoration: deco("Téléphone"))),
+                Expanded(
+                  child: TextFormField(
+                    controller: c.telCtrl,
+                    decoration: deco("Téléphone"),
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 10),
             Row(
               children: [
-                Expanded(child: TextFormField(controller: c.coordCtrl, decoration: deco("Coordonateur"))),
+                Expanded(
+                  child: TextFormField(
+                    controller: c.coordCtrl,
+                    decoration: deco("Coordonateur"),
+                  ),
+                ),
                 const SizedBox(width: 10),
-                Expanded(child: TextFormField(controller: c.adrCtrl, decoration: deco("Adresse (URL ou texte)"))),
+                Expanded(
+                  child: TextFormField(
+                    controller: c.adrCtrl,
+                    decoration: deco("Adresse (URL ou texte)"),
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 10),
             Row(
               children: [
-                Expanded(child: numberField(c.frLivCtrl, "Fr Livraison (jour)")),
+                Expanded(
+                  child: numberField(c.frLivCtrl, "Fr Livraison (jour)"),
+                ),
                 const SizedBox(width: 10),
                 Expanded(child: numberField(c.frVisCtrl, "Fr Visite (jour)")),
               ],
@@ -328,14 +621,17 @@ class ClientDetailScreen extends StatelessWidget {
                 child: CustomPaint(
                   painter: _DonutPainter(
                     progress: anim,
-                    color: const Color(0xFF6C56B8),
+                    color: const Color(0xFF0A1E40),
                     trackColor: const Color(0xFFEDEAF6),
                     strokeWidth: 11,
                   ),
                   child: Center(
                     child: Text(
                       "$pct%",
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
@@ -343,23 +639,38 @@ class ClientDetailScreen extends StatelessWidget {
             },
           ),
           const SizedBox(height: 6),
-          const Text("Satisfaction", style: TextStyle(fontSize: 13, color: Colors.black54)),
+          const Text(
+            "Satisfaction",
+            style: TextStyle(fontSize: 13, color: Colors.black54),
+          ),
         ],
       ),
     );
   }
 
   // ---- Diffuseurs
-  static Widget _diffuseursTable(
+  static List<DataRow> _diffuseursTable(
     BuildContext context,
     List<ClientDiffuseurRow> rows,
     ClientDetailController c,
   ) {
     if (rows.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.all(16),
-        child: Text("Aucun diffuseur."),
-      );
+      return [
+        const DataRow(
+          cells: [
+            DataCell(
+              Text(
+                "Aucun diffuseur",
+                style: TextStyle(fontStyle: FontStyle.italic),
+              ),
+            ),
+            DataCell(SizedBox()),
+            DataCell(SizedBox()),
+            DataCell(SizedBox()),
+            DataCell(SizedBox()),
+          ],
+        ),
+      ];
     }
 
     // petite boîte de confirmation avant retrait
@@ -377,181 +688,241 @@ class ClientDetailScreen extends StatelessWidget {
       );
     }
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.vertical,
-      child: DataTable(
-        showCheckboxColumn: false,
-        columnSpacing: 24,
-        headingRowColor: MaterialStateProperty.all(const Color(0xFF5DB7A1)),
-        columns: [
-          const DataColumn(label: _Head("CAB")),
-          const DataColumn(label: _Head("Modèle")),
-          const DataColumn(label: _Head("Type_Carte")),
-          const DataColumn(label: _Head("Emplacement")),
-          if (c.isSuperAdmin) const DataColumn(label: _Head("Actions")), // <- nouvelle colonne
-        ],
-        rows: rows.map((r) {
-          return DataRow(
-            onSelectChanged: (_) => c.goToClientDiffuseur(r.id),
-            cells: [
-              DataCell(Text(r.cab)),
-              DataCell(Text(r.modele)),
-              DataCell(Text(r.typeCarte)),
-              DataCell(Text(r.emplacement)),
-              if (c.isSuperAdmin)
-                DataCell(
-                  Tooltip(
-                    message: "Retirer ce diffuseur du client",
-                    child: IconButton(
-                      icon: const Icon(Icons.remove_circle, color: Colors.redAccent),
-                      onPressed: () => _confirmRetirer(r.cab),
-                    ),
+    return rows.map((r) {
+      return DataRow(
+        onSelectChanged: (_) => c.goToClientDiffuseur(r.id),
+        cells: [
+          DataCell(Text(r.cab)),
+          DataCell(Text(r.modele)),
+          DataCell(Text(r.typeCarte)),
+          DataCell(Text(r.emplacement)),
+          if (c.isSuperAdmin)
+            DataCell(
+              Tooltip(
+                message: "Retirer ce diffuseur du client",
+                child: IconButton(
+                  icon: const Icon(
+                    Icons.remove_circle,
+                    color: Colors.redAccent,
                   ),
+                  onPressed: () => _confirmRetirer(r.cab),
                 ),
-            ],
-          );
-        }).toList(),
-      ),
-    );
+              ),
+            ),
+        ],
+      );
+    }).toList();
   }
 
-
   // ---- Interventions
-  static Widget _interventionsTable(List<InterventionRow> rows) {
+  static List<DataRow> _interventionsTable(List<InterventionRow> rows) {
     if (rows.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.all(16),
-        child: Text("Aucune intervention."),
-      );
-    }
-    return SingleChildScrollView(
-      scrollDirection: Axis.vertical,
-      child: DataTable(
-        showCheckboxColumn: false,
-        columnSpacing: 20,
-        headingRowColor: MaterialStateProperty.all(const Color(0xFF5DB7A1)),
-        columns: const [
-          DataColumn(label: _Head("Date")),
-          DataColumn(label: _Head("Technicien")),
-          DataColumn(label: _Head("Alertes")),
-          DataColumn(label: _Head("Statut")),
-        ],
-        rows: rows
-            .map(
-              (r) => DataRow(
-                onSelectChanged: (_) => Get.toNamed('/interventions/${r.id}'),
-                cells: [
-                  DataCell(Text(r.date ?? "-")),
-                  DataCell(Text(r.technicien ?? "-")),
-                  DataCell(Text(r.alertes == true ? "Oui" : "Non")),
-                  DataCell(Text(r.statut ?? "-")),
-                ],
+      return [
+        const DataRow(
+          cells: [
+            DataCell(
+              Text(
+                "Aucune intervention",
+                style: TextStyle(fontStyle: FontStyle.italic),
               ),
-            )
-            .toList(),
-      ),
-    );
+            ),
+            DataCell(SizedBox()),
+            DataCell(SizedBox()),
+            DataCell(SizedBox()),
+          ],
+        ),
+      ];
+    }
+    return rows
+        .map(
+          (r) => DataRow(
+            onSelectChanged: (_) => Get.toNamed('/interventions/${r.id}'),
+            cells: [
+              DataCell(Text(r.date ?? "-")),
+              DataCell(Text(r.technicien ?? "-")),
+              DataCell(Text(r.alertes == true ? "Oui" : "Non")),
+              DataCell(Text(r.statut ?? "-")),
+            ],
+          ),
+        )
+        .toList();
   }
 
   // ---- Réclamations
-  static Widget _reclamationsTable(List<ReclamationRow> rows) {
+  static List<DataRow> _reclamationsTable(List<ReclamationRow> rows) {
     if (rows.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.all(16),
-        child: Text("Aucune réclamation."),
-      );
-    }
-    return SingleChildScrollView(
-      scrollDirection: Axis.vertical,
-      child: DataTable(
-        showCheckboxColumn: false,
-        columnSpacing: 24,
-        headingRowColor: MaterialStateProperty.all(const Color(0xFF5DB7A1)),
-        columns: const [
-          DataColumn(label: _Head("Date")),
-          DataColumn(label: _Head("Problème")),
-          DataColumn(label: _Head("Technicien")),
-          DataColumn(label: _Head("Statut")),
-        ],
-        rows: rows.map((r) => DataRow(
-          onSelectChanged: (_) => Get.toNamed('/reclamations/${r.id}'),
+      return [
+        const DataRow(
           cells: [
-            DataCell(Text(r.date ?? "-")),
-            DataCell(SizedBox(
-              width: 260,
-              child: Text(r.probleme ?? "-", overflow: TextOverflow.ellipsis),
-            )),
-            DataCell(Text(r.technicien ?? "-")),
-            DataCell(Text(r.statut ?? "-")),
+            DataCell(
+              Text(
+                "Aucune réclamation",
+                style: TextStyle(fontStyle: FontStyle.italic),
+              ),
+            ),
+            DataCell(SizedBox()),
+            DataCell(SizedBox()),
+            DataCell(SizedBox()),
           ],
-        )).toList(),
+        ),
+      ];
+    }
+    return rows
+        .map(
+          (r) => DataRow(
+            onSelectChanged: (_) => Get.toNamed('/reclamations/${r.id}'),
+            cells: [
+              DataCell(Text(r.date ?? "-")),
+              DataCell(
+                SizedBox(
+                  width: 260,
+                  child: Text(
+                    r.probleme ?? "-",
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ),
+              DataCell(Text(r.technicien ?? "-")),
+              DataCell(Text(r.statut ?? "-")),
+            ],
+          ),
+        )
+        .toList();
+  }
+
+  // ---------- UI Components ----------
+  Widget _infoCard(
+    String title,
+    IconData icon,
+    List<Widget> children, {
+    Widget? trailing,
+  }) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon, color: const Color(0xFF0A1E40), size: 20),
+                const SizedBox(width: 8),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF0A1E40),
+                  ),
+                ),
+                const Spacer(),
+                if (trailing != null) trailing,
+              ],
+            ),
+            const SizedBox(height: 12),
+            ...children,
+          ],
+        ),
       ),
     );
   }
 
-
-  // ---------------------------------------------------------------------------
-  // helpers (styles)
-  // ---------------------------------------------------------------------------
-
-  static Widget _sectionContainer({required Widget child}) => ClipRRect(
-        borderRadius: BorderRadius.circular(14),
-        child: Container(
+  Widget _sectionTitle(String title) {
+    return Row(
+      children: [
+        Container(
+          width: 4,
+          height: 20,
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(14),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 14,
-                offset: const Offset(0, 6),
-              )
-            ],
-            border: Border.all(color: const Color(0x11000000)),
+            color: const Color(0xFF0A1E40),
+            borderRadius: BorderRadius.circular(2),
           ),
-          padding: const EdgeInsets.all(16),
-          child: child,
         ),
-      );
+        const SizedBox(width: 10),
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF0A1E40),
+          ),
+        ),
+      ],
+    );
+  }
 
-  static Widget _card(Widget child) => ClipRRect(
+  Widget _dataTableCard({
+    required List<DataColumn> columns,
+    required List<DataRow> rows,
+  }) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            border: Border.all(color: Colors.black12),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: child,
-        ),
-      );
-
-  static Widget _sectionTitle(String t, {Widget? trailing}) => Row(
-        children: [
-          Container(
-            width: 4,
-            height: 18,
-            decoration: BoxDecoration(
-              color: const Color(0xFF5DB7A1),
-              borderRadius: BorderRadius.circular(2),
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Container(
+            constraints: const BoxConstraints(minWidth: 800),
+            child: DataTable(
+              showCheckboxColumn: false,
+              columnSpacing: 24,
+              headingRowHeight: 48,
+              dataRowMinHeight: 48,
+              headingRowColor: MaterialStateProperty.all(
+                const Color(0xFF0A1E40).withOpacity(0.8),
+              ),
+              columns: columns,
+              rows: rows,
             ),
           ),
-          const SizedBox(width: 8),
-          Text(t, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
-          const Spacer(),
-          if (trailing != null) trailing,
-        ],
-      );
+        ),
+      ),
+    );
+  }
+
+  Widget _emptyStateCard(IconData icon, String message) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 48, color: Colors.grey.shade400),
+              const SizedBox(height: 12),
+              Text(
+                message,
+                style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
-class _Head extends StatelessWidget {
-  final String t;
-  const _Head(this.t);
+class _TableHeader extends StatelessWidget {
+  final String text;
+  const _TableHeader(this.text);
+
   @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
-        child: Text(t, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
-      );
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+      child: Text(
+        text,
+        style: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
 }
 
 class _DonutPainter extends CustomPainter {
