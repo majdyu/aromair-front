@@ -19,6 +19,7 @@ class CustomTextField extends StatefulWidget {
 
   /// Personnalisation optionnelle du padding
   final EdgeInsetsGeometry? contentPadding;
+  final String? Function(String?)? validator;
 
   const CustomTextField({
     super.key,
@@ -32,6 +33,7 @@ class CustomTextField extends StatefulWidget {
     this.controller,
     this.keyboardType,
     this.contentPadding,
+    this.validator,
   });
 
   @override
@@ -77,7 +79,8 @@ class _CustomTextFieldState extends State<CustomTextField> {
           borderRadius: BorderRadius.circular(30),
           borderSide: BorderSide.none,
         ),
-        contentPadding: widget.contentPadding ??
+        contentPadding:
+            widget.contentPadding ??
             const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
       ),
     );
