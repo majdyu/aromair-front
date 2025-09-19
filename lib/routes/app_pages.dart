@@ -31,10 +31,7 @@ class AppPages {
       }),
     ),
     // Admin routes
-    GetPage(
-      name: AppRoutes.adminOverview,
-      page: () => const OverviewScreen(),
-    ),
+    GetPage(name: AppRoutes.adminOverview, page: () => const OverviewScreen()),
 
     GetPage(
       name: AppRoutes.adminInterventions,
@@ -42,32 +39,36 @@ class AppPages {
     ),
     // --- Détail intervention ---
     // /interventions/123
-      GetPage(
-        name: '/interventions/:id',
-        page: () {
-          final id = int.tryParse(Get.parameters['id'] ?? '');
-          if (id == null) {
-            return const Scaffold(body: Center(child: Text('Intervention ID invalide')));
-          }
-          return InterventionDetailScreen(interventionId: id);
-        },
-      ),
+    GetPage(
+      name: '/interventions/:id',
+      page: () {
+        final id = int.tryParse(Get.parameters['id'] ?? '');
+        if (id == null) {
+          return const Scaffold(
+            body: Center(child: Text('Intervention ID invalide')),
+          );
+        }
+        return InterventionDetailScreen(interventionId: id);
+      },
+    ),
+    GetPage(
+      name: AppRoutes.etatClientDiffuseur,
+      page: () {
+        final id = int.tryParse(Get.parameters['id'] ?? '');
+        final cdId = int.tryParse(Get.parameters['cdId'] ?? '');
+        if (id == null || cdId == null) {
+          return const Scaffold(
+            body: Center(child: Text('Paramètres URL invalides')),
+          );
+        }
+        return EtatClientDiffuseurScreen(
+          interventionId: id,
+          clientDiffuseurId: cdId,
+        );
+      },
+    ),
 
-    // --- Etat ClientDiffuseur dans une intervention ---
-    // /interventions/123/client-diffuseurs/456
-      GetPage(
-        name: AppRoutes.etatClientDiffuseur,
-        page: () {
-          final id = int.tryParse(Get.parameters['id'] ?? '');
-          final cdId = int.tryParse(Get.parameters['cdId'] ?? '');
-          if (id == null || cdId == null) {
-            return const Scaffold(body: Center(child: Text('Paramètres URL invalides')));
-          }
-          return EtatClientDiffuseurScreen(interventionId: id, clientDiffuseurId: cdId);
-        },
-      ),
-
-      GetPage(
+    GetPage(
       name: AppRoutes.alerteDetail,
       page: () {
         final id = int.tryParse(Get.parameters['id'] ?? '');
@@ -91,29 +92,23 @@ class AppPages {
         return ClientDetailScreen(clientId: id);
       },
     ),
-    
+
     GetPage(
-    name: '/client-diffuseurs/:id',
-    page: () => ClientDiffuseurDetailScreen(
-      clientDiffuseurId: int.parse(Get.parameters['id']!),
+      name: '/client-diffuseurs/:id',
+      page: () => ClientDiffuseurDetailScreen(
+        clientDiffuseurId: int.parse(Get.parameters['id']!),
+      ),
     ),
-  ),
-    GetPage(
-      name: AppRoutes.adminClients,
-      page: () => const ClientsScreen(),
-    ),
+    GetPage(name: AppRoutes.adminClients, page: () => const ClientsScreen()),
     GetPage(
       name: AppRoutes.adminDiffuseurs,
       page: () => const DiffuseursScreen(),
     ),
-    GetPage(
-      name: AppRoutes.adminAlertes,
-      page: () => const AlertesScreen(),
-    ),
+    GetPage(name: AppRoutes.adminAlertes, page: () => const AlertesScreen()),
 
     // Détail réclamation : /reclamations/:id
     GetPage(
-      name: AppRoutes.reclamationDetail,        // '/reclamations/:id'
+      name: AppRoutes.reclamationDetail, // '/reclamations/:id'
       page: () {
         final idStr = Get.parameters['id'];
         final id = int.tryParse(idStr ?? '');
@@ -130,15 +125,9 @@ class AppPages {
       name: AppRoutes.adminUtilisateurs,
       page: () => const UtilisateursScreen(),
     ),
-    GetPage(
-      name: AppRoutes.adminRapports,
-      page: () => const RapportsScreen(),
-    ),
+    GetPage(name: AppRoutes.adminRapports, page: () => const RapportsScreen()),
     // Technicien routes
-    GetPage(
-      name: AppRoutes.techHome,
-      page: () => const TechDashboard(),
-    ),
+    GetPage(name: AppRoutes.techHome, page: () => const TechDashboard()),
     // Add your home pages for each role...
   ];
 }

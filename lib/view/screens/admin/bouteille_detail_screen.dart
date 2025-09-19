@@ -1,7 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:front_erp_aromair/data/models/bouteille_detail.dart';
-import 'package:front_erp_aromair/data/models/etat_client_diffuseur.dart';
 import 'package:front_erp_aromair/data/repositories/admin/BouteillesRepository.dart';
 import 'package:front_erp_aromair/data/services/BouteillesService.dart';
 import 'package:front_erp_aromair/view/widgets/admin_drawer.dart';
