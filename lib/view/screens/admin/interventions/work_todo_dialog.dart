@@ -10,14 +10,36 @@ Future<bool?> showWorkToDoDialog(
   BuildContext context,
   InterventionDetail detail,
 ) {
-  return Get.dialog<bool>(
-    Dialog(
-      insetPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 24),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
-      child: _WorkToDoForm(detail: detail),
+  return showModalBottomSheet<bool>(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (context) => DraggableScrollableSheet(
+      initialChildSize: 0.9,
+      minChildSize: 0.5,
+      maxChildSize: 0.95,
+      builder: (_, controller) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          children: [
+            // Drag handle
+            Container(
+              width: 40,
+              height: 5,
+              margin: const EdgeInsets.symmetric(vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.grey[400],
+                borderRadius: BorderRadius.circular(3),
+              ),
+            ),
+            Expanded(child: _WorkToDoForm(detail: detail)),
+          ],
+        ),
+      ),
     ),
-    barrierDismissible: false,
-    useSafeArea: true,
   );
 }
 
@@ -30,302 +52,418 @@ class _WorkToDoForm extends StatelessWidget {
     return GetX<EditTafController>(
       init: EditTafController(detail),
       builder: (c) {
-        final maxH = MediaQuery.of(context).size.height * 0.86;
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: c.isLoadingLookups.value
+              ? const Center(child: CircularProgressIndicator())
+              : Column(
+                  children: [
+                    // Header
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      child: Text(
+                        "Travail à faire",
+                        style: Theme.of(context).textTheme.headlineSmall
+                            ?.copyWith(fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                    const Divider(height: 1),
 
-        int? safeValue(List<OptionItem> items, int? v) =>
-            (v != null && items.any((o) => o.id == v)) ? v : null;
-
-        return ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: 480, maxHeight: maxH),
-          child: Material(
-            color: const Color(0xFFE29AF2),
-            borderRadius: BorderRadius.circular(26),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: c.isLoadingLookups.value
-                  ? const SizedBox(
-                      height: 280,
-                      child: Center(child: CircularProgressIndicator()),
-                    )
-                  : Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Text(
-                          "Travail à faire",
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-
-                        Expanded(
-                          child: SingleChildScrollView(
-                            padding: const EdgeInsets.only(bottom: 12),
-                            child: Column(
-                              children: [
-                                // Client (verrouillé — juste informatif)
-                                _rounded(
-                                  Opacity(
-                                    opacity: 0.75,
-                                    child: DropdownButtonHideUnderline(
-                                      child: DropdownButton2<int>(
-                                        isExpanded: true,
-                                        hint: const Text("Client"),
-                                        value: safeValue(
-                                          c.clients,
-                                          c.selectedClientId.value,
-                                        ),
-                                        items: c.clients
-                                            .map((o) => DropdownMenuItem(
-                                                  value: o.id,
-                                                  child: Text(o.label),
-                                                ))
-                                            .toList(),
-                                        onChanged: null,
-                                        buttonStyleData:
-                                            const ButtonStyleData(
-                                          height: 42,
-                                          padding: EdgeInsets.symmetric(
-                                            horizontal: 12,
-                                          ),
-                                        ),
-                                        dropdownStyleData:
-                                            const DropdownStyleData(
-                                          maxHeight: 320,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-
-                                const Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Text(
-                                    "Sélectionne les diffuseurs par type d’intervention",
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.black54,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 6),
-
-                                // Tous les types (structure/copier-coller du add_intervention_dialog)
-                                ...c.types.map((type) {
-                                  final enabled = c.enabled[type]!;
-                                  final lines = c.linesByType[type]!; // List<RxnInt>
-
-                                  return Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Checkbox(
-                                            value: enabled.value,
-                                            onChanged: (v) =>
-                                                c.toggleType(type, v),
-                                            visualDensity:
-                                                VisualDensity.compact,
-                                          ),
-                                          Text(c.pretty(type)),
-                                          const Spacer(),
-                                        ],
-                                      ),
-
-                                      if (enabled.value) ...[
-                                        if (c.selectedClientId.value != null &&
-                                            c.diffuseursAll.isEmpty)
-                                          const Padding(
-                                            padding: EdgeInsets.only(
-                                              left: 8,
-                                              bottom: 8,
-                                            ),
-                                            child: Align(
-                                              alignment:
-                                                  Alignment.centerLeft,
-                                              child: Text(
-                                                "Aucun diffuseur pour ce client",
-                                                style: TextStyle(
-                                                  fontSize: 12,
-                                                  color: Colors.black54,
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-
-                                        Column(
-                                          children: List.generate(
-                                            lines.length,
-                                            (i) {
-                                              final opts =
-                                                  c.optionsFor(type, i);
-                                              final canAddRow =
-                                                  c.canAddLine(type);
-
-                                              return Padding(
-                                                padding:
-                                                    const EdgeInsets.only(
-                                                  bottom: 8,
-                                                ),
-                                                child: Row(
-                                                  children: [
-                                                    Expanded(
-                                                      child: _rounded(
-                                                        DropdownButtonHideUnderline(
-                                                          child:
-                                                              DropdownButton2<
-                                                                  int>(
-                                                            isExpanded:
-                                                                true,
-                                                            hint: const Text(
-                                                              "Sélectionner un diffuseur",
-                                                            ),
-                                                            value: (lines[i].value !=
-                                                                        null &&
-                                                                    opts.any((o) =>
-                                                                        o.id ==
-                                                                        lines[i]
-                                                                            .value))
-                                                                ? lines[i]
-                                                                    .value
-                                                                : null,
-                                                            items: opts
-                                                                .map(
-                                                                  (o) =>
-                                                                      DropdownMenuItem(
-                                                                    value: o
-                                                                        .id,
-                                                                    child: Text(
-                                                                      o.label,
-                                                                    ),
-                                                                  ),
-                                                                )
-                                                                .toList(),
-                                                            // IMPORTANT :
-                                                            // même logique que add_intervention_dialog
-                                                            onChanged: (v) =>
-                                                                lines[i].value =
-                                                                    v,
-                                                            buttonStyleData:
-                                                                const ButtonStyleData(
-                                                              height: 40,
-                                                              padding: EdgeInsets
-                                                                  .symmetric(
-                                                                horizontal:
-                                                                    10,
-                                                              ),
-                                                            ),
-                                                            dropdownStyleData:
-                                                                const DropdownStyleData(
-                                                              maxHeight:
-                                                                  300,
-                                                              offset:
-                                                                  Offset(
-                                                                0,
-                                                                6,
-                                                              ),
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    const SizedBox(
-                                                        width: 8),
-                                                    _roundBtn(
-                                                      Icons.add,
-                                                      onTap: canAddRow
-                                                          ? () => c
-                                                              .addLine(
-                                                                  type)
-                                                          : null,
-                                                      disabled:
-                                                          !canAddRow,
-                                                    ),
-                                                    const SizedBox(
-                                                        width: 4),
-                                                    _roundBtn(
-                                                      Icons.remove,
-                                                      onTap: () => c
-                                                          .removeLine(
-                                                              type, i),
-                                                      danger: true,
-                                                    ),
-                                                  ],
-                                                ),
-                                              );
-                                            },
-                                          ),
-                                        ),
-                                      ],
-                                    ],
-                                  );
-                                }),
-                              ],
-                            ),
-                          ),
-                        ),
-
-                        // Actions
-                        Row(
-                          mainAxisAlignment:
-                              MainAxisAlignment.spaceBetween,
+                    // Form content
+                    Expanded(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            OutlinedButton(
-                              onPressed: () => Get.back(result: false),
-                              child: const Text("Annuler"),
+                            const SizedBox(height: 16),
+
+                            // Client field (read-only)
+                            _buildSectionTitle("Client"),
+                            const SizedBox(height: 8),
+                            _buildReadOnlyClientField(c),
+                            const SizedBox(height: 16),
+
+                            // Instruction text
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: const Color(
+                                  0xFF0A1E40,
+                                ).withOpacity(0.05),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: const Color(
+                                    0xFF0A1E40,
+                                  ).withOpacity(0.1),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.info_outline,
+                                    color: const Color(0xFF0A1E40),
+                                    size: 18,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      "Sélectionnez les diffuseurs par type d'intervention",
+                                      style: TextStyle(
+                                        color: const Color(0xFF0A1E40),
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                            FilledButton(
-                              onPressed: () async {
-                                final ok = await c.submit();
-                                if (ok) Get.back(result: true);
-                              },
-                              child: const Text("Enregistrer"),
+                            const SizedBox(height: 20),
+
+                            // Intervention types
+                            ...c.types.map(
+                              (type) =>
+                                  _buildInterventionType(context, c, type),
                             ),
                           ],
                         ),
-                      ],
+                      ),
                     ),
-            ),
-          ),
+
+                    // Actions
+                    Container(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[50],
+                        border: const Border(
+                          top: BorderSide(color: Colors.grey, width: 0.5),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: () => Navigator.pop(context, false),
+                              style: OutlinedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 16,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: const Text("Annuler"),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: FilledButton(
+                              onPressed: () async {
+                                final ok = await c.submit();
+                                if (ok && context.mounted) {
+                                  Navigator.pop(context, true);
+                                }
+                              },
+                              style: FilledButton.styleFrom(
+                                backgroundColor: const Color(0xFF0A1E40),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 16,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: const Text(
+                                "Enregistrer",
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
         );
       },
     );
   }
 
-  // UI helpers (identiques à ceux utilisés dans add_intervention_dialog)
+  Widget _buildSectionTitle(String title) {
+    return Text(
+      title,
+      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+    );
+  }
 
-  static Widget _rounded(Widget child) => Container(
-        padding:
-            const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(22),
-        ),
-        child: child,
-      );
+  Widget _buildReadOnlyClientField(EditTafController c) {
+    int? safeValue(List<OptionItem> items, int? v) =>
+        (v != null && items.any((o) => o.id == v)) ? v : null;
 
-  static Widget _roundBtn(
-    IconData icon, {
-    required VoidCallback? onTap,
-    bool disabled = false,
-    bool danger = false,
-  }) =>
-      InkWell(
-        customBorder: const CircleBorder(),
-        onTap: disabled ? null : onTap,
-        child: Container(
-          width: 28,
-          height: 28,
-          decoration: BoxDecoration(
-            color: disabled
-                ? Colors.black26
-                : (danger ? Colors.redAccent : const Color(0xFF20C997)),
-            shape: BoxShape.circle,
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[300]!),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton2<int>(
+          isExpanded: true,
+          hint: const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 12),
+            child: Text("Client", style: TextStyle(color: Colors.grey)),
           ),
-          child: Icon(icon, color: Colors.white, size: 18),
+          value: safeValue(c.clients, c.selectedClientId.value),
+          items: c.clients
+              .map(
+                (o) => DropdownMenuItem<int>(
+                  value: o.id,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Text(o.label),
+                  ),
+                ),
+              )
+              .toList(),
+          onChanged: null, // Read-only
+          buttonStyleData: const ButtonStyleData(
+            height: 48,
+            padding: EdgeInsets.zero,
+          ),
+          dropdownStyleData: DropdownStyleData(
+            decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)),
+          ),
+          iconStyleData: IconStyleData(
+            icon: const Icon(Icons.lock, size: 18),
+            iconEnabledColor: Colors.grey[600],
+          ),
         ),
-      );
+      ),
+    );
+  }
+
+  Widget _buildInterventionType(
+    BuildContext context,
+    EditTafController c,
+    String type,
+  ) {
+    final enabled = c.enabled[type]!;
+    final lines = c.linesByType[type]!;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[300]!),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Type header
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Transform.scale(
+                  scale: 1.2,
+                  child: Checkbox(
+                    value: enabled.value,
+                    onChanged: (v) => c.toggleType(type, v),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  c.pretty(type),
+                  style: const TextStyle(fontWeight: FontWeight.w500),
+                ),
+              ],
+            ),
+          ),
+
+          if (enabled.value) ...[
+            const Divider(height: 1),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  // Message if no diffusers
+                  if (c.selectedClientId.value != null &&
+                      c.diffuseursAll.isEmpty)
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.orange[50],
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.info_outline,
+                            color: Colors.orange[700],
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              "Aucun diffuseur disponible pour ce client",
+                              style: TextStyle(
+                                color: Colors.orange[700],
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                  if (c.selectedClientId.value != null &&
+                      c.diffuseursAll.isNotEmpty) ...[
+                    // Dynamic lines
+                    ...List.generate(lines.length, (i) {
+                      final opts = c.optionsFor(type, i);
+                      final canAddRow = c.canAddLine(type);
+
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: _buildDiffuseurDropdown(
+                                hint: "Sélectionner un diffuseur",
+                                value:
+                                    (lines[i].value != null &&
+                                        opts.any((o) => o.id == lines[i].value))
+                                    ? lines[i].value
+                                    : null,
+                                items: opts,
+                                onChanged: (v) => lines[i].value = v,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            _buildIconButton(
+                              icon: Icons.add,
+                              onPressed: canAddRow
+                                  ? () => c.addLine(type)
+                                  : null,
+                              color: const Color(0xFF0A1E40),
+                            ),
+                            const SizedBox(width: 4),
+                            _buildIconButton(
+                              icon: Icons.remove,
+                              onPressed: () => c.removeLine(type, i),
+                              color: Colors.red,
+                            ),
+                          ],
+                        ),
+                      );
+                    }),
+
+                    // Add line button
+                    if (c.canAddLine(type))
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: TextButton.icon(
+                          onPressed: () => c.addLine(type),
+                          icon: Icon(
+                            Icons.add,
+                            size: 18,
+                            color: Theme.of(context).primaryColor,
+                          ),
+                          label: Text(
+                            "Ajouter un diffuseur",
+                            style: TextStyle(
+                              color: Theme.of(context).primaryColor,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDiffuseurDropdown({
+    required String hint,
+    required int? value,
+    required List<OptionItem> items,
+    required Function(int?)? onChanged,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey[300]!),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton2<int>(
+          isExpanded: true,
+          hint: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Text(hint, style: TextStyle(color: Colors.grey[600])),
+          ),
+          value: value,
+          items: items
+              .map(
+                (o) => DropdownMenuItem<int>(
+                  value: o.id,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Text(o.label),
+                  ),
+                ),
+              )
+              .toList(),
+          onChanged: onChanged,
+          buttonStyleData: const ButtonStyleData(
+            height: 48,
+            padding: EdgeInsets.zero,
+          ),
+          dropdownStyleData: DropdownStyleData(
+            maxHeight: 320,
+            decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)),
+          ),
+          iconStyleData: IconStyleData(
+            icon: const Icon(Icons.arrow_drop_down),
+            iconEnabledColor: Colors.grey[600],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildIconButton({
+    required IconData icon,
+    required VoidCallback? onPressed,
+    required Color color,
+  }) {
+    return Container(
+      width: 36,
+      height: 36,
+      decoration: BoxDecoration(
+        color: onPressed != null ? color.withOpacity(0.1) : Colors.grey[200],
+        shape: BoxShape.circle,
+      ),
+      child: IconButton(
+        icon: Icon(
+          icon,
+          size: 18,
+          color: onPressed != null ? color : Colors.grey,
+        ),
+        onPressed: onPressed,
+        padding: EdgeInsets.zero,
+        visualDensity: VisualDensity.compact,
+      ),
+    );
+  }
 }

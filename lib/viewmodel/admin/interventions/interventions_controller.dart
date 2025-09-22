@@ -5,8 +5,9 @@ import 'package:front_erp_aromair/data/repositories/admin/interventions_reposito
 import 'package:front_erp_aromair/data/services/interventions_service.dart';
 
 class InterventionsController extends GetxController {
-  final InterventionsRepository repository =
-      InterventionsRepository(InterventionsService());
+  final InterventionsRepository repository = InterventionsRepository(
+    InterventionsService(),
+  );
 
   // UI state
   final isLoading = false.obs;
@@ -16,7 +17,7 @@ class InterventionsController extends GetxController {
   // Filtres
   final from = DateTime.now().subtract(const Duration(days: 0)).obs;
   final to = DateTime.now().obs;
-  final selectedStatut = "ALL".obs; // ALL | EN_COURS | TRAITE | EN_RETARD | ANNULEE | NON_ACCOMPLIES
+  final selectedStatut = "ALL".obs;
   final searchCtrl = TextEditingController();
 
   final statuts = const [
@@ -110,29 +111,42 @@ class InterventionsController extends GetxController {
   }
 
   Future<void> deleteIntervention(int id) async {
-    final ok = await Get.dialog<bool>(
-      AlertDialog(
-        title: const Text("Confirmation"),
-        content: const Text("Supprimer définitivement cette intervention ?"),
-        actions: [
-          TextButton(onPressed: () => Get.back(result: false), child: const Text("Annuler")),
-          FilledButton(onPressed: () => Get.back(result: true), child: const Text("Supprimer")),
-        ],
-      ),
-      barrierDismissible: false,
-    ) ?? false;
+    final ok =
+        await Get.dialog<bool>(
+          AlertDialog(
+            title: const Text("Confirmation"),
+            content: const Text(
+              "Supprimer définitivement cette intervention ?",
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Get.back(result: false),
+                child: const Text("Annuler"),
+              ),
+              FilledButton(
+                onPressed: () => Get.back(result: true),
+                child: const Text("Supprimer"),
+              ),
+            ],
+          ),
+          barrierDismissible: false,
+        ) ??
+        false;
 
     if (!ok) return;
 
     try {
       await repository.delete(id);
-      Get.snackbar("Supprimé", "Intervention supprimée", snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar(
+        "Supprimé",
+        "Intervention supprimée",
+        snackPosition: SnackPosition.BOTTOM,
+      );
       fetch();
     } catch (e) {
       Get.snackbar("Erreur", "Suppression échouée: $e");
     }
   }
-
 
   @override
   void onClose() {

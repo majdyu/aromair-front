@@ -35,7 +35,7 @@ class AppPages {
 
     GetPage(
       name: AppRoutes.adminInterventions,
-      page: () => const InterventionsScreen(),
+      page: () => InterventionsScreen(),
     ),
     // --- Détail intervention ---
     // /interventions/123
