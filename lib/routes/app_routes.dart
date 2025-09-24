@@ -4,11 +4,12 @@ class AppRoutes {
   static const adminOverview = '/admin-overview';
 
   static const adminInterventions = '/admin-interventions';
-    // Détails intervention (paramétrée)
-  static const interventionDetail = '/interventions/:id';
+  // Détails intervention (paramétrée)
+  static const interventionDetail = '/interventions';
   // État clientDiffuseur dans une intervention (paramétrée)
-  static const etatClientDiffuseur = '/interventions/:id/client-diffuseurs/:cdId';
-  // Détails alerte 
+  static const etatClientDiffuseur =
+      '/interventions/:id/client-diffuseurs/:cdId';
+  // Détails alerte
   static const alerteDetail = '/alertes/:id';
   // Détails bouteille
   static const bouteilleDetail = '/bouteilles/:id';

@@ -30,7 +30,6 @@ class InterventionsRepository {
   Future<List<OptionItem>> diffuseursByClientMin(int clientId) =>
       _service.getClientDiffuseursByClientMin(clientId);
 
-
   Future<void> updateTafs(int interventionId, List<TafCreate> tafs) {
     return _service.updateTafs(interventionId, tafs);
   }
@@ -54,7 +53,7 @@ class InterventionsRepository {
   }
 
   //---------------------------------------------------------------
-   Future<EtatClientDiffuseur> etatClientDiffuseur(
+  Future<EtatClientDiffuseur> etatClientDiffuseur(
     int interventionId,
     int clientDiffuseurId,
   ) {
@@ -76,5 +75,4 @@ class InterventionsRepository {
       enMarche: enMarche,
     );
   }
-  
 }

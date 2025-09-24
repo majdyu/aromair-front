@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:front_erp_aromair/view/widgets/common/aroma_scaffold.dart';
-import 'package:front_erp_aromair/view/widgets/empty_state_card.dart';
+import 'package:front_erp_aromair/routes/app_routes.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 
 import 'package:front_erp_aromair/viewmodel/admin/interventions/interventions_controller.dart';
 import 'package:front_erp_aromair/view/screens/admin/interventions/add_intervention_dialog.dart';
+
+import 'package:front_erp_aromair/theme/colors.dart';
+import 'package:front_erp_aromair/theme/text_style.dart';
+import 'package:front_erp_aromair/view/widgets/common/aroma_scaffold.dart';
 
 class InterventionsScreen extends StatelessWidget {
   const InterventionsScreen({super.key});
@@ -15,116 +18,118 @@ class InterventionsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GetX<InterventionsController>(
+    return GetBuilder<InterventionsController>(
       init: InterventionsController(),
       builder: (c) {
         return AromaScaffold(
           title: "Interventions",
-          onRefresh: c.fetch, // refresh action in AppBar
+          onRefresh: c.fetch,
           body: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 1200),
-              child: SizedBox(
-                width: double.infinity,
-                child: Card(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.divider),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
-                  elevation: 12,
-                  shadowColor: Colors.black.withOpacity(0.4),
                   child: Padding(
-                    padding: const EdgeInsets.all(24),
+                    padding: const EdgeInsets.all(16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Header
+                        // ===== Header (INSIDE card) =====
                         Row(
                           children: [
                             const Icon(
                               Icons.construction,
-                              color: Color(0xFF0A1E40),
+                              color: AppColors.primary,
                               size: 28,
                             ),
                             const SizedBox(width: 12),
-                            const Text(
+                            Text(
                               "Gestion des Interventions",
-                              style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.w700,
-                                color: Color(0xFF0A1E40),
-                              ),
+                              style: AromaText.h1.copyWith(fontSize: 24),
                             ),
                             const Spacer(),
-                            if (!c.isLoading.value && c.error.value == null)
-                              Container(
+                            Obx(() {
+                              if (c.isLoading.value || c.error.value != null)
+                                return const SizedBox.shrink();
+                              return Container(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 12,
                                   vertical: 6,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: const Color(
-                                    0xFF0A1E40,
-                                  ).withOpacity(0.1),
+                                  color: AppColors.primary.withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(16),
                                 ),
                                 child: Text(
                                   "${c.items.length} intervention(s)",
-                                  style: const TextStyle(
+                                  style: AromaText.body.copyWith(
                                     fontWeight: FontWeight.w500,
-                                    color: Color(0xFF0A1E40),
+                                    color: AppColors.primary,
                                   ),
                                 ),
-                              ),
+                              );
+                            }),
                           ],
                         ),
                         const SizedBox(height: 4),
                         Text(
                           "Filtrez et gérez vos interventions",
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey.shade600,
+                          style: AromaText.bodyMuted,
+                        ),
+                        const SizedBox(height: 16),
+
+                        // ===== Filters (INSIDE card) =====
+                        Obx(
+                          () => Row(
+                            children: [
+                              _labelValue(
+                                "Du:",
+                                _pillButton(
+                                  context: context,
+                                  text: _fmt(c.from.value),
+                                  onTap: () => c.pickFromDate(context),
+                                  icon: Icons.calendar_month,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              _labelValue(
+                                "Jusqu'à:",
+                                _pillButton(
+                                  context: context,
+                                  text: _fmt(c.to.value),
+                                  onTap: () => c.pickToDate(context),
+                                  icon: Icons.calendar_month,
+                                ),
+                              ),
+                              const Spacer(),
+                              _roundAction(
+                                tooltip: "Nouvelle intervention",
+                                icon: Icons.add,
+                                onTap: () async {
+                                  final created =
+                                      await showAddInterventionDialog(context);
+                                  if (created == true) c.fetch();
+                                },
+                              ),
+                            ],
                           ),
                         ),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 16),
 
-                        // Filtres (dates + bouton +)
-                        Row(
-                          children: [
-                            _labelValue(
-                              "Du:",
-                              _pillButton(
-                                context: context,
-                                text: _fmt(c.from.value),
-                                onTap: () => c.pickFromDate(context),
-                                icon: Icons.calendar_month,
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            _labelValue(
-                              "Jusqu'à:",
-                              _pillButton(
-                                context: context,
-                                text: _fmt(c.to.value),
-                                onTap: () => c.pickToDate(context),
-                                icon: Icons.calendar_month,
-                              ),
-                            ),
-                            const Spacer(),
-                            _roundAction(
-                              tooltip: "Nouvelle intervention",
-                              icon: Icons.add,
-                              onTap: () async {
-                                final created = await showAddInterventionDialog(
-                                  context,
-                                );
-                                if (created == true) c.fetch();
-                              },
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 20),
-
-                        // Recherche + filtre statut
+                        // ===== Search + statut (INSIDE card) =====
                         Row(
                           children: [
                             Expanded(
@@ -148,25 +153,25 @@ class InterventionsScreen extends StatelessWidget {
                                   ),
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(12),
-                                    borderSide: BorderSide(
-                                      color: Colors.grey.shade400,
+                                    borderSide: const BorderSide(
+                                      color: AppColors.divider,
                                     ),
                                   ),
                                   enabledBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(12),
-                                    borderSide: BorderSide(
-                                      color: Colors.grey.shade400,
+                                    borderSide: const BorderSide(
+                                      color: AppColors.divider,
                                     ),
                                   ),
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(12),
                                     borderSide: const BorderSide(
-                                      color: Color(0xFF0A1E40),
+                                      color: AppColors.primary,
                                       width: 1.5,
                                     ),
                                   ),
                                   filled: true,
-                                  fillColor: Colors.grey.shade50,
+                                  fillColor: AppColors.surfaceMuted,
                                 ),
                               ),
                             ),
@@ -178,10 +183,8 @@ class InterventionsScreen extends StatelessWidget {
                                   horizontal: 12,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: Colors.grey.shade50,
-                                  border: Border.all(
-                                    color: Colors.grey.shade400,
-                                  ),
+                                  color: AppColors.surfaceMuted,
+                                  border: Border.all(color: AppColors.divider),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Row(
@@ -195,70 +198,67 @@ class InterventionsScreen extends StatelessWidget {
                                             highlightColor: Colors.transparent,
                                             splashColor: Colors.transparent,
                                           ),
-                                          child: DropdownButton2<String>(
-                                            focusNode: c.statutFocus,
-                                            isExpanded: true,
-                                            value: c.selectedStatut.value,
-                                            items: c.statuts.map((s) {
-                                              final label = s == "ALL"
-                                                  ? "Tout Statut"
-                                                  : _prettyStatut(s);
-                                              return DropdownMenuItem(
-                                                value: s,
-                                                child: Text(
-                                                  label,
-                                                  style: TextStyle(
-                                                    color: s == "ALL"
-                                                        ? Colors.grey.shade600
-                                                        : const Color(
-                                                            0xFF0A1E40,
+                                          child: Obx(
+                                            () => DropdownButton2<String>(
+                                              focusNode: c.statutFocus,
+                                              isExpanded: true,
+                                              value: c
+                                                  .selectedStatut
+                                                  .value, // reactive
+                                              items: c.statuts.map((s) {
+                                                final label = s == "ALL"
+                                                    ? "Tout Statut"
+                                                    : _prettyStatut(s);
+                                                return DropdownMenuItem(
+                                                  value: s,
+                                                  child: Text(
+                                                    label,
+                                                    style: AromaText.body,
+                                                  ),
+                                                );
+                                              }).toList(),
+                                              onChanged: (v) {
+                                                if (v == null) return;
+                                                c.selectedStatut.value =
+                                                    v; // update Rx
+                                                c.onSearch(); // your logic
+                                              },
+                                              buttonStyleData:
+                                                  const ButtonStyleData(
+                                                    padding: EdgeInsets.zero,
+                                                    height: 44,
+                                                  ),
+                                              iconStyleData: const IconStyleData(
+                                                icon: Icon(
+                                                  Icons.arrow_drop_down_rounded,
+                                                ),
+                                                iconSize: 24,
+                                              ),
+                                              dropdownStyleData:
+                                                  DropdownStyleData(
+                                                    maxHeight: 250,
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.white,
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            12,
                                                           ),
-                                                    fontSize: 14,
-                                                  ),
-                                                ),
-                                              );
-                                            }).toList(),
-                                            onChanged: (v) {
-                                              c.onStatutChanged(v);
-                                              FocusManager.instance.primaryFocus
-                                                  ?.unfocus();
-                                            },
-                                            buttonStyleData:
-                                                const ButtonStyleData(
-                                                  height: 46,
-                                                  padding: EdgeInsets.zero,
-                                                ),
-                                            dropdownStyleData:
-                                                DropdownStyleData(
-                                                  maxHeight: 280,
-                                                  offset: const Offset(0, 8),
-                                                  decoration: BoxDecoration(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          12,
+                                                      boxShadow: [
+                                                        BoxShadow(
+                                                          color: Colors.black
+                                                              .withOpacity(
+                                                                0.06,
+                                                              ),
+                                                          blurRadius: 8,
+                                                          offset: const Offset(
+                                                            0,
+                                                            4,
+                                                          ),
                                                         ),
-                                                    color: Colors.white,
-                                                    boxShadow: [
-                                                      BoxShadow(
-                                                        color: Colors.black
-                                                            .withOpacity(0.15),
-                                                        blurRadius: 16,
-                                                        offset: const Offset(
-                                                          0,
-                                                          6,
-                                                        ),
-                                                      ),
-                                                    ],
+                                                      ],
+                                                    ),
                                                   ),
-                                                  elevation: 8,
-                                                ),
-                                            menuItemStyleData:
-                                                const MenuItemStyleData(
-                                                  height: 46,
-                                                  padding: EdgeInsets.symmetric(
-                                                    horizontal: 16,
-                                                  ),
-                                                ),
+                                            ),
                                           ),
                                         ),
                                       ),
@@ -273,164 +273,85 @@ class InterventionsScreen extends StatelessWidget {
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 12),
-                            ElevatedButton.icon(
-                              onPressed: c.onSearch,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF0A1E40),
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 20,
-                                  vertical: 14,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                elevation: 2,
-                                shadowColor: Colors.black.withOpacity(0.2),
-                              ),
-                              icon: const Icon(Icons.filter_list, size: 20),
-                              label: const Text("Appliquer"),
-                            ),
                           ],
                         ),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 16),
 
-                        // Liste des interventions
-                        if (c.isLoading.value)
-                          const Expanded(
-                            child: Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  CircularProgressIndicator(
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                      Color(0xFF0A1E40),
-                                    ),
-                                    strokeWidth: 3,
-                                  ),
-                                  SizedBox(height: 16),
-                                  Text(
-                                    "Chargement des interventions...",
-                                    style: TextStyle(color: Color(0xFF0A1E40)),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          )
-                        else if (c.error.value != null)
-                          Expanded(
-                            child: Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.error_outline,
-                                    color: Colors.red.shade400,
-                                    size: 52,
-                                  ),
-                                  const SizedBox(height: 16),
-                                  const Text(
-                                    "Erreur de chargement",
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      color: Color(0xFF0A1E40),
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 40,
-                                    ),
-                                    child: Text(
-                                      c.error.value!,
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        color: Colors.grey.shade600,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 24),
-                                  ElevatedButton(
-                                    onPressed: c.fetch,
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: const Color(0xFF0A1E40),
-                                      foregroundColor: Colors.white,
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 24,
-                                        vertical: 14,
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      elevation: 2,
-                                    ),
-                                    child: const Text("Réessayer"),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          )
-                        else if (c.items.isEmpty)
-                          Expanded(
-                            child: Center(
-                              child: SingleChildScrollView(
-                                child: EmptyStateCard(
-                                  embedded: true,
-                                  icon: Icons.assignment_outlined,
-                                  message:
-                                      "Aucune intervention trouvée\n"
-                                      "Essayez de modifier vos filtres ou créez une nouvelle intervention",
-                                  actionText: "Créer une intervention",
-                                  onAction: () async {
-                                    final created =
-                                        await showAddInterventionDialog(
-                                          context,
-                                        );
-                                    if (created == true) c.fetch();
-                                  },
+                        // ===== Content area (INSIDE the same card) =====
+                        Expanded(
+                          child: Obx(() {
+                            if (c.isLoading.value) {
+                              return const Center(
+                                child: CircularProgressIndicator(),
+                              );
+                            }
+                            if (c.error.value != null) {
+                              return Center(
+                                child: Text(
+                                  "Une erreur est survenue.",
+                                  style: AromaText.bodyMuted,
                                 ),
-                              ),
-                            ),
-                          )
-                        else
-                          Expanded(
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.grey.shade50,
-                                  borderRadius: BorderRadius.circular(12),
+                              );
+                            }
+                            if (c.items.isEmpty) {
+                              return Center(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(
+                                      Icons.inbox_outlined,
+                                      size: 48,
+                                      color: AppColors.textSecondary,
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      "Aucune intervention pour cette période",
+                                      style: AromaText.bodyMuted,
+                                    ),
+                                  ],
                                 ),
-                                child: ListView.separated(
-                                  itemCount: c.items.length,
-                                  separatorBuilder: (context, index) => Divider(
-                                    height: 1,
-                                    thickness: 1,
-                                    color: Colors.grey.shade300,
-                                    indent: 16,
-                                    endIndent: 16,
-                                  ),
-                                  itemBuilder: (context, index) {
-                                    final it = c.items[index];
-                                    return _InterventionListTile(
-                                      intervention: it,
-                                      onView: () async {
-                                        c.selectedRowId.value = it.id;
-                                        await Get.toNamed(
-                                          '/interventions/${it.id}',
-                                        )?.then((_) => c.clearSelection());
-                                        c.selectedRowId.value = null;
-                                      },
-                                      onDelete: () =>
-                                          c.deleteIntervention(it.id),
-                                    );
-                                  },
-                                ),
+                              );
+                            }
+
+                            // Normal list area (bordered container)
+                            return Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: AppColors.divider),
                               ),
-                            ),
-                          ),
+                              child: ListView.separated(
+                                itemCount: c.items.length,
+                                separatorBuilder: (_, __) => Divider(
+                                  height: 1,
+                                  color: AppColors.divider.withOpacity(0.8),
+                                ),
+                                itemBuilder: (_, i) {
+                                  final it = c.items[i];
+                                  return _InterventionListTile(
+                                    intervention: it,
+                                    onView: () async {
+                                      // === BEST PRACTICE: named route + arguments ===
+                                      c.selectedRowId.value = it.id;
+                                      print(
+                                        " Selected ID type: ${c.selectedRowId.value}",
+                                      );
+                                      final changed = await Get.toNamed(
+                                        AppRoutes.interventionDetail,
+                                        arguments: c.selectedRowId.value
+                                            .toString(),
+                                      );
+                                      c.clearSelection();
+                                      c.selectedRowId.value = null;
+                                      if (changed == true) c.fetch();
+                                    },
+                                    onDelete: () => c.deleteIntervention(it.id),
+                                  );
+                                },
+                              ),
+                            );
+                          }),
+                        ),
                       ],
                     ),
                   ),
@@ -443,21 +364,17 @@ class InterventionsScreen extends StatelessWidget {
     );
   }
 
-  Widget _labelValue(String label, Widget child) => Row(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      Text(
-        label,
-        style: const TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w500,
-          color: Color(0xFF0A1E40),
-        ),
-      ),
-      const SizedBox(width: 8),
-      child,
-    ],
-  );
+  // ---------- small UI helpers (unchanged logic) ----------
+
+  Widget _labelValue(String label, Widget value) {
+    return Row(
+      children: [
+        Text(label, style: AromaText.bodyMuted),
+        const SizedBox(width: 8),
+        value,
+      ],
+    );
+  }
 
   Widget _pillButton({
     required BuildContext context,
@@ -466,14 +383,14 @@ class InterventionsScreen extends StatelessWidget {
     required IconData icon,
   }) {
     return InkWell(
+      borderRadius: BorderRadius.circular(12),
       onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
           color: Colors.white,
-          border: Border.all(color: const Color(0xFF0A1E40).withOpacity(0.3)),
-          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppColors.divider),
+          borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.05),
@@ -485,12 +402,9 @@ class InterventionsScreen extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              text,
-              style: const TextStyle(fontSize: 14, color: Color(0xFF0A1E40)),
-            ),
+            Text(text, style: AromaText.body),
             const SizedBox(width: 8),
-            Icon(icon, size: 18, color: const Color(0xFF0A1E40)),
+            Icon(icon, size: 18, color: AppColors.primary),
           ],
         ),
       ),
@@ -505,7 +419,7 @@ class InterventionsScreen extends StatelessWidget {
     return Tooltip(
       message: tooltip,
       child: Material(
-        color: const Color(0xFF0A1E40),
+        color: AppColors.primary,
         shape: const CircleBorder(),
         elevation: 4,
         child: InkWell(
@@ -515,7 +429,7 @@ class InterventionsScreen extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: const BoxDecoration(shape: BoxShape.circle),
-            child: Icon(icon, color: Colors.white, size: 24),
+            child: const Icon(Icons.add, color: Colors.white, size: 24),
           ),
         ),
       ),
@@ -578,10 +492,8 @@ class _InterventionListTile extends StatelessWidget {
                         Expanded(
                           child: Text(
                             it.client,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFF0A1E40),
+                            style: AromaText.title.copyWith(
+                              color: AppColors.primary,
                             ),
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -612,19 +524,18 @@ class _InterventionListTile extends StatelessWidget {
                     // Technician
                     Row(
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.person_outline,
                           size: 16,
-                          color: Colors.grey.shade600,
+                          color: AppColors.textSecondary,
                         ),
                         const SizedBox(width: 6),
                         Expanded(
                           child: Text(
                             it.technicien,
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey.shade700,
+                            style: AromaText.body.copyWith(
                               fontWeight: FontWeight.w500,
+                              color: AppColors.textSecondary,
                             ),
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -636,19 +547,13 @@ class _InterventionListTile extends StatelessWidget {
                     // Date
                     Row(
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.calendar_today,
                           size: 16,
-                          color: Colors.grey.shade600,
+                          color: AppColors.textSecondary,
                         ),
                         const SizedBox(width: 6),
-                        Text(
-                          dateStr,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey.shade600,
-                          ),
-                        ),
+                        Text(dateStr, style: AromaText.bodyMuted),
                       ],
                     ),
                   ],
@@ -663,7 +568,7 @@ class _InterventionListTile extends StatelessWidget {
                     tooltip: "Voir les détails",
                     icon: const Icon(
                       Icons.visibility_outlined,
-                      color: Color(0xFF0A1E40),
+                      color: AppColors.primary,
                       size: 22,
                     ),
                     onPressed: onView,
@@ -675,9 +580,9 @@ class _InterventionListTile extends StatelessWidget {
                   ),
                   IconButton(
                     tooltip: "Supprimer",
-                    icon: Icon(
+                    icon: const Icon(
                       Icons.delete_outline,
-                      color: Colors.red.shade500,
+                      color: AppColors.danger,
                       size: 22,
                     ),
                     onPressed: onDelete,
@@ -745,7 +650,7 @@ String _prettyStatut(String? s) {
 }
 
 Color _statusColor(String? status) {
-  if (status == null) return Colors.grey.shade200;
+  if (status == null) return AppColors.divider;
   String n = status
       .trim()
       .toUpperCase()
@@ -754,21 +659,22 @@ Color _statusColor(String? status) {
       .replaceAll(RegExp(r'\s+'), ' ')
       .trim();
 
-  if (n.contains('RETARD')) return const Color(0xFFFFCDD2);
-  if (n.startsWith('TRAIT')) return const Color(0xFFC8E6C9);
-  if (n.contains('ANNUL')) return const Color(0xFFF5F5F5);
-  if (n.contains('EN') && n.contains('COURS')) return const Color(0xFFFFECB3);
+  if (n.contains('RETARD')) return AppColors.danger.withOpacity(0.1);
+  if (n.startsWith('TRAIT')) return AppColors.success.withOpacity(0.1);
+  if (n.contains('ANNUL')) return AppColors.surfaceMuted;
+  if (n.contains('EN') && n.contains('COURS'))
+    return AppColors.warning.withOpacity(0.1);
   if (n.contains('NON') &&
       (n.contains('ACCOMPL') ||
           n.contains('EFFECTU') ||
           n.contains('REALIS'))) {
-    return const Color(0xFFFFE0B2);
+    return AppColors.warning.withOpacity(0.1);
   }
-  return Colors.grey.shade200;
+  return AppColors.divider;
 }
 
 Color _statusTextColor(String? status) {
-  if (status == null) return Colors.grey.shade700;
+  if (status == null) return AppColors.textSecondary;
   String n = status
       .trim()
       .toUpperCase()
@@ -777,15 +683,15 @@ Color _statusTextColor(String? status) {
       .replaceAll(RegExp(r'\s+'), ' ')
       .trim();
 
-  if (n.contains('RETARD')) return const Color(0xFFC62828);
-  if (n.startsWith('TRAIT')) return const Color(0xFF2E7D32);
-  if (n.contains('ANNUL')) return const Color(0xFF424242);
-  if (n.contains('EN') && n.contains('COURS')) return const Color(0xFFF57C00);
+  if (n.contains('RETARD')) return AppColors.danger;
+  if (n.startsWith('TRAIT')) return AppColors.success;
+  if (n.contains('ANNUL')) return AppColors.textPrimary;
+  if (n.contains('EN') && n.contains('COURS')) return AppColors.warning;
   if (n.contains('NON') &&
       (n.contains('ACCOMPL') ||
           n.contains('EFFECTU') ||
           n.contains('REALIS'))) {
-    return const Color(0xFFEF6C00);
+    return AppColors.warning;
   }
-  return Colors.grey.shade700;
+  return AppColors.textSecondary;
 }

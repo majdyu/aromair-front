@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:front_erp_aromair/theme/colors.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
@@ -171,6 +172,7 @@ class _AddInterventionForm extends StatelessWidget {
                             child: OutlinedButton(
                               onPressed: () => Navigator.pop(context, false),
                               style: OutlinedButton.styleFrom(
+                                foregroundColor: AppColors.secondary,
                                 padding: const EdgeInsets.symmetric(
                                   vertical: 16,
                                 ),
@@ -191,7 +193,7 @@ class _AddInterventionForm extends StatelessWidget {
                                 }
                               },
                               style: FilledButton.styleFrom(
-                                backgroundColor: Theme.of(context).primaryColor,
+                                backgroundColor: AppColors.primary,
                                 padding: const EdgeInsets.symmetric(
                                   vertical: 16,
                                 ),
@@ -483,9 +485,7 @@ class _AddInterventionForm extends StatelessWidget {
                           ),
                           label: Text(
                             "Ajouter un diffuseur",
-                            style: TextStyle(
-                              color: Theme.of(context).primaryColor,
-                            ),
+                            style: TextStyle(color: AppColors.primary),
                           ),
                         ),
                       ),

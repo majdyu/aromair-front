@@ -37,12 +37,12 @@ class AppPages {
       name: AppRoutes.adminInterventions,
       page: () => InterventionsScreen(),
     ),
-    // --- Détail intervention ---
-    // /interventions/123
+
     GetPage(
-      name: '/interventions/:id',
+      name: '/interventions',
       page: () {
-        final id = int.tryParse(Get.parameters['id'] ?? '');
+        final id = int.tryParse(Get.arguments);
+        print("Intervention ID from arguments: ${id is int}");
         if (id == null) {
           return const Scaffold(
             body: Center(child: Text('Intervention ID invalide')),
