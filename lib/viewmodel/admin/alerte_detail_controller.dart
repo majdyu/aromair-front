@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:front_erp_aromair/core/net/dio_client.dart';
+import 'package:front_erp_aromair/routes/app_routes.dart';
 import 'package:get/get.dart';
 
 import 'package:front_erp_aromair/data/models/alerte_detail.dart';
@@ -11,14 +12,15 @@ class AlerteDetailController extends GetxController {
   AlerteDetailController(this.id);
 
   // ✅ utilise TON Dio configuré (baseUrl + auth + logs)
-  late final AlertesRepository repo =
-      AlertesRepository(AlertesService(buildDio()));
+  late final AlertesRepository repo = AlertesRepository(
+    AlertesService(buildDio()),
+  );
 
   // state
   final isLoading = false.obs;
-  final isSaving  = false.obs;
-  final error     = RxnString();
-  final dto       = Rxn<AlerteDetail>();
+  final isSaving = false.obs;
+  final error = RxnString();
+  final dto = Rxn<AlerteDetail>();
 
   final decisionCtrl = TextEditingController();
 
@@ -77,7 +79,8 @@ class AlerteDetailController extends GetxController {
 
     final id = current.clientId;
     if (id != null) {
-      Get.toNamed('/clients/$id');
+      Get.toNamed(AppRoutes.detailClient, arguments: {'id': id});
+      //Get.toNamed('/clients/$id');
       return;
     }
 

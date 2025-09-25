@@ -95,10 +95,12 @@ class AppPages {
     ),
 
     GetPage(
-      name: '/clients/:id',
+      name: AppRoutes.detailClient,
       page: () {
-        final id = int.parse(Get.parameters['id']!);
-        return ClientDetailScreen(clientId: id);
+        final args = (Get.arguments ?? const {}) as Map;
+        final idClient = args['id'] as int?;
+        assert(idClient != null, 'Client ID must be provided in arguments');
+        return ClientDetailScreen(clientId: idClient!);
       },
     ),
 

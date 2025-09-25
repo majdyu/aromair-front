@@ -9,7 +9,7 @@ class AppRoutes {
   // État clientDiffuseur dans une intervention (paramétrée)
   static const interventionClientDiffuseur =
       '/interventions/client-diffuseurs/detail';
-
+  static const detailClient = '/clients/detail';
   // Détails alerte
   static const alerteDetail = '/alertes/detail';
   // Détails bouteille
