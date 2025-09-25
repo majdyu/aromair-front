@@ -82,10 +82,15 @@ class AppPages {
       },
     ),
     GetPage(
-      name: '/bouteilles/:id',
+      name: AppRoutes.bouteilleDetail,
       page: () {
-        final id = int.parse(Get.parameters['id']!);
-        return BouteilleDetailScreen(bouteilleId: id); // ton écran détail
+        final args = (Get.arguments ?? const {}) as Map;
+        final bouteilleId = args['bouteilleId'] as int?;
+        assert(
+          bouteilleId != null,
+          'bouteilleId must be provided in arguments',
+        );
+        return BouteilleDetailScreen(bouteilleId: bouteilleId!);
       },
     ),
 
