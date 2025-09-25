@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:front_erp_aromair/routes/app_routes.dart';
+import 'package:front_erp_aromair/view/widgets/common/aroma_scaffold.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-
-import 'package:front_erp_aromair/view/widgets/admin_drawer.dart';
 import 'package:front_erp_aromair/viewmodel/admin/interventions/intervention_detail_controller.dart';
 import 'package:front_erp_aromair/view/screens/admin/interventions/work_todo_dialog.dart';
+import 'package:front_erp_aromair/view/widgets/common/aroma_card.dart'; // keep for outer wrapper
 
 class InterventionDetailScreen extends StatelessWidget {
   final int interventionId;
@@ -25,7 +26,6 @@ class InterventionDetailScreen extends StatelessWidget {
       builder: (c) {
         final d = c.detail.value;
 
-        // Hydrate remarque + paiement quand le DTO arrive (sans écraser si en édition)
         if (d != null) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (!c.isEditingRemark.value) {
@@ -39,425 +39,366 @@ class InterventionDetailScreen extends StatelessWidget {
           });
         }
 
-        return Scaffold(
-          drawer: const AdminDrawer(),
-          appBar: AppBar(
-            backgroundColor: const Color(0xFF0A1E40),
-            elevation: 0,
-            centerTitle: true,
-            title: const Text(
-              "Détails de l'Intervention",
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            leading: Builder(
-              builder: (ctx) => IconButton(
-                icon: const Icon(Icons.menu, color: Colors.white),
-                onPressed: () => Scaffold.of(ctx).openDrawer(),
-              ),
-            ),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.refresh, color: Colors.white),
-                onPressed: c.fetch,
-                tooltip: "Actualiser",
-              ),
-            ],
-          ),
-          body: Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Color(0xFF0A1E40), // Dark navy
-                  Color(0xFF152A51), // Medium navy
-                  Color(0xFF1E3A8A), // Royal blue
-                ],
-                stops: [0.0, 0.5, 1.0],
-              ),
-            ),
-            padding: const EdgeInsets.all(20),
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 1200),
-                child: Card(
-                  elevation: 12,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: c.isLoading.value
-                        ? const Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                CircularProgressIndicator(
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    Color(0xFF0A1E40),
-                                  ),
-                                ),
-                                SizedBox(height: 16),
-                                Text(
-                                  "Chargement des détails...",
-                                  style: TextStyle(color: Color(0xFF0A1E40)),
-                                ),
-                              ],
+        return AromaScaffold(
+          title: "Détails de l'Intervention $interventionId",
+          body: AromaCard(
+            // only the outermost wrapper uses AromaCard
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: c.isLoading.value
+                  ? const Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Color(0xFF0A1E40),
                             ),
-                          )
-                        : c.error.value != null
-                        ? Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.error_outline,
-                                  color: Colors.red.shade400,
-                                  size: 48,
-                                ),
-                                const SizedBox(height: 16),
-                                const Text(
-                                  "Erreur de chargement",
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    color: Color(0xFF0A1E40),
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  c.error.value!,
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(color: Colors.grey.shade600),
-                                ),
-                                const SizedBox(height: 20),
-                                ElevatedButton(
-                                  onPressed: c.fetch,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFF0A1E40),
-                                    foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 24,
-                                      vertical: 12,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                  ),
-                                  child: const Text("Réessayer"),
-                                ),
-                              ],
+                          ),
+                          SizedBox(height: 16),
+                          Text(
+                            "Chargement des détails...",
+                            style: TextStyle(color: Color(0xFF0A1E40)),
+                          ),
+                        ],
+                      ),
+                    )
+                  : c.error.value != null
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.error_outline,
+                            color: Colors.red.shade400,
+                            size: 48,
+                          ),
+                          const SizedBox(height: 16),
+                          const Text(
+                            "Erreur de chargement",
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: Color(0xFF0A1E40),
+                              fontWeight: FontWeight.w600,
                             ),
-                          )
-                        : d == null
-                        ? const Center(
-                            child: Text(
-                              "Aucune donnée disponible",
-                              style: TextStyle(color: Color(0xFF0A1E40)),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            c.error.value!,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: Colors.grey.shade600),
+                          ),
+                          const SizedBox(height: 20),
+                          ElevatedButton(
+                            onPressed: c.fetch,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF0A1E40),
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                                vertical: 12,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
                             ),
-                          )
-                        : SingleChildScrollView(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // Header section
-                                Row(
+                            child: const Text("Réessayer"),
+                          ),
+                        ],
+                      ),
+                    )
+                  : d == null
+                  ? const Center(
+                      child: Text(
+                        "Aucune donnée disponible",
+                        style: TextStyle(color: Color(0xFF0A1E40)),
+                      ),
+                    )
+                  : SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Header section
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.construction,
+                                color: Color(0xFF0A1E40),
+                                size: 28,
+                              ),
+                              const SizedBox(width: 12),
+                              const Text(
+                                "Détails de l'Intervention",
+                                style: TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFF0A1E40),
+                                ),
+                              ),
+                              const Spacer(),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: _statusColor(
+                                    d.statut,
+                                  ).withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: Row(
                                   children: [
-                                    const Icon(
-                                      Icons.construction,
-                                      color: Color(0xFF0A1E40),
-                                      size: 28,
+                                    Icon(
+                                      Icons.circle,
+                                      size: 12,
+                                      color: _statusColor(d.statut),
                                     ),
-                                    const SizedBox(width: 12),
-                                    const Text(
-                                      "Détails de l'Intervention",
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      _prettyStatut(d.statut),
                                       style: TextStyle(
-                                        fontSize: 22,
-                                        fontWeight: FontWeight.w700,
-                                        color: Color(0xFF0A1E40),
-                                      ),
-                                    ),
-                                    const Spacer(),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                        vertical: 6,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: _statusColor(
-                                          d.statut,
-                                        ).withOpacity(0.2),
-                                        borderRadius: BorderRadius.circular(16),
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          Icon(
-                                            Icons.circle,
-                                            size: 12,
-                                            color: _statusColor(d.statut),
-                                          ),
-                                          const SizedBox(width: 6),
-                                          Text(
-                                            _prettyStatut(d.statut),
-                                            style: TextStyle(
-                                              color: _statusColor(d.statut),
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                        ],
+                                        color: _statusColor(d.statut),
+                                        fontWeight: FontWeight.w600,
                                       ),
                                     ),
                                   ],
                                 ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  "Numéro : ${d.id}",
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey.shade600,
-                                  ),
-                                ),
-                                const SizedBox(height: 24),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            "Numéro : ${d.id}",
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                          const SizedBox(height: 24),
 
-                                // Main content - two columns layout
-                                Row(
+                          // Main content - two columns layout
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Left column - Basic info
+                              Expanded(
+                                flex: 2,
+                                child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    // Left column - Basic info
-                                    Expanded(
-                                      flex: 2,
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          _infoCard(
-                                            "Informations de base",
-                                            Icons.info_outline,
-                                            [
-                                              _infoRow(
-                                                "Date",
-                                                _fmtDate(d.date),
-                                              ),
-                                              _infoRow(
-                                                "Dernière intervention",
-                                                d.derniereIntervention != null
-                                                    ? _fmtDate(
-                                                        d.derniereIntervention!,
-                                                      )
-                                                    : "-",
-                                              ),
-                                              _infoRow("Technicien", d.userNom),
-                                              _infoRow("Client", d.clientNom),
-                                              _infoRow(
-                                                "Paiement obligatoire",
-                                                d.estPayementObligatoire
-                                                    ? "Oui"
-                                                    : "Non",
-                                              ),
-                                              _infoRow(
-                                                "Montant",
-                                                "${_fmtMoney(d.payement)} TND",
-                                              ),
-                                            ],
-                                          ),
-                                          const SizedBox(height: 16),
-                                          _remarqueWidget(c),
-                                        ],
-                                      ),
+                                    _infoCard(
+                                      "Informations de base",
+                                      Icons.info_outline,
+                                      [
+                                        _infoRow("Date", _fmtDate(d.date)),
+                                        _infoRow(
+                                          "Dernière intervention",
+                                          d.derniereIntervention != null
+                                              ? _fmtDate(
+                                                  d.derniereIntervention!,
+                                                )
+                                              : "-",
+                                        ),
+                                        _infoRow("Technicien", d.userNom),
+                                        _infoRow("Client", d.clientNom),
+                                        _infoRow(
+                                          "Paiement obligatoire",
+                                          d.estPayementObligatoire
+                                              ? "Oui"
+                                              : "Non",
+                                        ),
+                                        _infoRow(
+                                          "Montant",
+                                          "${_fmtMoney(d.payement)} TND",
+                                        ),
+                                      ],
                                     ),
-
-                                    const SizedBox(width: 24),
-
-                                    Expanded(
-                                      flex: 1,
-                                      child: Column(
-                                        children: [
-                                          _actionCard("Actions", Icons.settings, [
-                                            ElevatedButton.icon(
-                                              onPressed: c.detail.value == null
-                                                  ? null
-                                                  : () async {
-                                                      final ok =
-                                                          await showWorkToDoDialog(
-                                                            context,
-                                                            c.detail.value!,
-                                                          );
-                                                      if (ok == true)
-                                                        await c.fetch();
-                                                    },
-                                              icon: const Icon(
-                                                Icons.list_alt,
-                                                size: 20,
-                                              ),
-                                              label: const Text(
-                                                "Travail à faire",
-                                              ),
-                                              style: ElevatedButton.styleFrom(
-                                                backgroundColor: const Color(
-                                                  0xFF0A1E40,
-                                                ),
-                                                foregroundColor: Colors.white,
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                      horizontal: 16,
-                                                      vertical: 12,
-                                                    ),
-                                                shape: RoundedRectangleBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(12),
-                                                ),
-                                              ),
-                                            ),
-                                            const SizedBox(height: 8),
-
-                                            OutlinedButton.icon(
-                                              onPressed: () {},
-                                              icon: const Icon(
-                                                Icons.photo_library_outlined,
-                                                size: 20,
-                                              ),
-                                              label: const Text(
-                                                "Médias (bientôt)",
-                                              ),
-                                              style: OutlinedButton.styleFrom(
-                                                foregroundColor: const Color(
-                                                  0xFF0A1E40,
-                                                ),
-                                                side: const BorderSide(
-                                                  color: Color(0xFF0A1E40),
-                                                ),
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                      horizontal: 16,
-                                                      vertical: 12,
-                                                    ),
-                                                shape: RoundedRectangleBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(12),
-                                                ),
-                                              ),
-                                            ),
-                                            const SizedBox(height: 8),
-
-                                            OutlinedButton.icon(
-                                              onPressed: () {},
-                                              icon: const Icon(
-                                                Icons.picture_as_pdf,
-                                                size: 20,
-                                              ),
-                                              label: Text(
-                                                d.titreFicheMaintenance ??
-                                                    "Fiche maintenance",
-                                              ),
-                                              style: OutlinedButton.styleFrom(
-                                                foregroundColor: const Color(
-                                                  0xFF0A1E40,
-                                                ),
-                                                side: const BorderSide(
-                                                  color: Color(0xFF0A1E40),
-                                                ),
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                      horizontal: 16,
-                                                      vertical: 12,
-                                                    ),
-                                                shape: RoundedRectangleBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(12),
-                                                ),
-                                              ),
-                                            ),
-                                          ]),
-                                          const SizedBox(height: 16),
-                                          _paymentWidget(c),
-                                        ],
-                                      ),
-                                    ),
+                                    const SizedBox(height: 16),
+                                    _remarqueWidget(c),
                                   ],
                                 ),
+                              ),
 
-                                const SizedBox(height: 24),
+                              const SizedBox(width: 24),
 
-                                // Diffuseurs section
-                                _sectionTitle("Diffuseurs"),
-                                const SizedBox(height: 12),
-                                _dataTableCard(
+                              Expanded(
+                                flex: 1,
+                                child: Column(
+                                  children: [
+                                    _actionCard("Actions", Icons.settings, [
+                                      ElevatedButton.icon(
+                                        onPressed: c.detail.value == null
+                                            ? null
+                                            : () async {
+                                                final ok =
+                                                    await showWorkToDoDialog(
+                                                      context,
+                                                      c.detail.value!,
+                                                    );
+                                                if (ok == true) {
+                                                  await c.fetch();
+                                                }
+                                              },
+                                        icon: const Icon(
+                                          Icons.list_alt,
+                                          size: 20,
+                                        ),
+                                        label: const Text("Travail à faire"),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: const Color(
+                                            0xFF0A1E40,
+                                          ),
+                                          foregroundColor: Colors.white,
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 16,
+                                            vertical: 12,
+                                          ),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      OutlinedButton.icon(
+                                        onPressed: () {},
+                                        icon: const Icon(
+                                          Icons.photo_library_outlined,
+                                          size: 20,
+                                        ),
+                                        label: const Text("Médias (bientôt)"),
+                                        style: OutlinedButton.styleFrom(
+                                          foregroundColor: const Color(
+                                            0xFF0A1E40,
+                                          ),
+                                          side: const BorderSide(
+                                            color: Color(0xFF0A1E40),
+                                          ),
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 16,
+                                            vertical: 12,
+                                          ),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      OutlinedButton.icon(
+                                        onPressed: () {},
+                                        icon: const Icon(
+                                          Icons.picture_as_pdf,
+                                          size: 20,
+                                        ),
+                                        label: Text(
+                                          d.titreFicheMaintenance ??
+                                              "Fiche maintenance",
+                                        ),
+                                        style: OutlinedButton.styleFrom(
+                                          foregroundColor: const Color(
+                                            0xFF0A1E40,
+                                          ),
+                                          side: const BorderSide(
+                                            color: Color(0xFF0A1E40),
+                                          ),
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 16,
+                                            vertical: 12,
+                                          ),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ]),
+                                    const SizedBox(height: 16),
+                                    _paymentWidget(c),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          const SizedBox(height: 24),
+
+                          // Diffuseurs section
+                          _sectionTitle("Diffuseurs"),
+                          const SizedBox(height: 12),
+                          _dataTableCard(
+                            columns: const [
+                              DataColumn(label: _TableHeader("CAB")),
+                              DataColumn(label: _TableHeader("Modèle")),
+                              DataColumn(label: _TableHeader("Type carte")),
+                              DataColumn(label: _TableHeader("Emplacement")),
+                            ],
+                            rows: d.diffuseurs.map((r) {
+                              return DataRow(
+                                onSelectChanged: (_) {
+                                  Get.toNamed(
+                                    AppRoutes.interventionClientDiffuseur,
+                                    arguments: {
+                                      'interventionId': d.id,
+                                      'clientDiffuseurId': r.id,
+                                    },
+                                  );
+                                },
+                                cells: [
+                                  DataCell(Text(r.cab)),
+                                  DataCell(Text(r.modeleDiffuseur)),
+                                  DataCell(Text(r.typeDiffuseur)),
+                                  DataCell(Text(r.emplacement)),
+                                ],
+                              );
+                            }).toList(),
+                          ),
+
+                          const SizedBox(height: 24),
+
+                          // Alertes section
+                          _sectionTitle("Alertes"),
+                          const SizedBox(height: 12),
+                          d.alertes.isEmpty
+                              ? _emptyStateCard(
+                                  Icons.notifications_none,
+                                  "Aucune alerte enregistrée",
+                                )
+                              : _dataTableCard(
                                   columns: const [
-                                    DataColumn(label: _TableHeader("CAB")),
-                                    DataColumn(label: _TableHeader("Modèle")),
+                                    DataColumn(label: _TableHeader("Date")),
+                                    DataColumn(label: _TableHeader("Problème")),
+                                    DataColumn(label: _TableHeader("Cause")),
                                     DataColumn(
-                                      label: _TableHeader("Type carte"),
-                                    ),
-                                    DataColumn(
-                                      label: _TableHeader("Emplacement"),
+                                      label: _TableHeader("État résolution"),
                                     ),
                                   ],
-                                  rows: d.diffuseurs.map((r) {
+                                  rows: d.alertes.map((a) {
                                     return DataRow(
                                       onSelectChanged: (_) {
+                                        print("Alerte ID: ${a.id}");
                                         Get.toNamed(
-                                          '/interventions/${d.id}/client-diffuseurs/${r.id}',
+                                          AppRoutes.alerteDetail,
+                                          arguments: {'alerteId': a.id},
                                         );
                                       },
+
                                       cells: [
-                                        DataCell(Text(r.cab)),
-                                        DataCell(Text(r.modeleDiffuseur)),
-                                        DataCell(Text(r.typeDiffuseur)),
-                                        DataCell(Text(r.emplacement)),
+                                        DataCell(Text(a.date)),
+                                        DataCell(Text(a.probleme ?? '-')),
+                                        DataCell(Text(a.cause ?? '-')),
+                                        DataCell(Text(a.etatResolution)),
                                       ],
                                     );
                                   }).toList(),
                                 ),
-
-                                const SizedBox(height: 24),
-
-                                // Alertes section
-                                _sectionTitle("Alertes"),
-                                const SizedBox(height: 12),
-                                d.alertes.isEmpty
-                                    ? _emptyStateCard(
-                                        Icons.notifications_none,
-                                        "Aucune alerte enregistrée",
-                                      )
-                                    : _dataTableCard(
-                                        columns: const [
-                                          DataColumn(
-                                            label: _TableHeader("Date"),
-                                          ),
-                                          DataColumn(
-                                            label: _TableHeader("Problème"),
-                                          ),
-                                          DataColumn(
-                                            label: _TableHeader("Cause"),
-                                          ),
-                                          DataColumn(
-                                            label: _TableHeader(
-                                              "État résolution",
-                                            ),
-                                          ),
-                                        ],
-                                        rows: d.alertes.map((a) {
-                                          return DataRow(
-                                            onSelectChanged: (_) =>
-                                                Get.toNamed('/alertes/${a.id}'),
-                                            cells: [
-                                              DataCell(Text(a.date)),
-                                              DataCell(Text(a.probleme ?? '-')),
-                                              DataCell(Text(a.cause ?? '-')),
-                                              DataCell(Text(a.etatResolution)),
-                                            ],
-                                          );
-                                        }).toList(),
-                                      ),
-                              ],
-                            ),
-                          ),
-                  ),
-                ),
-              ),
+                        ],
+                      ),
+                    ),
             ),
           ),
         );
@@ -681,6 +622,7 @@ class InterventionDetailScreen extends StatelessWidget {
   // ---------- UI Components ----------
   Widget _infoCard(String title, IconData icon, List<Widget> children) {
     return Card(
+      // back to regular Card
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
@@ -711,6 +653,7 @@ class InterventionDetailScreen extends StatelessWidget {
 
   Widget _actionCard(String title, IconData icon, List<Widget> children) {
     return Card(
+      // back to regular Card
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
@@ -817,6 +760,7 @@ class InterventionDetailScreen extends StatelessWidget {
 
   Widget _emptyStateCard(IconData icon, String message) {
     return Card(
+      // back to regular Card
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(

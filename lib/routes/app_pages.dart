@@ -52,18 +52,21 @@ class AppPages {
       },
     ),
     GetPage(
-      name: AppRoutes.etatClientDiffuseur,
+      name: AppRoutes.interventionClientDiffuseur,
       page: () {
-        final id = int.tryParse(Get.parameters['id'] ?? '');
-        final cdId = int.tryParse(Get.parameters['cdId'] ?? '');
-        if (id == null || cdId == null) {
-          return const Scaffold(
-            body: Center(child: Text('Paramètres URL invalides')),
-          );
-        }
+        final args = (Get.arguments ?? const {}) as Map;
+        final interId = args['interventionId'] as int?;
+        final cdId = args['clientDiffuseurId'] as int?;
+
+        // (Optional) guard against nulls
+        assert(
+          interId != null && cdId != null,
+          'interventionId and clientDiffuseurId must be provided in arguments',
+        );
+
         return EtatClientDiffuseurScreen(
-          interventionId: id,
-          clientDiffuseurId: cdId,
+          interventionId: interId!,
+          clientDiffuseurId: cdId!,
         );
       },
     ),
@@ -71,12 +74,13 @@ class AppPages {
     GetPage(
       name: AppRoutes.alerteDetail,
       page: () {
-        final id = int.tryParse(Get.parameters['id'] ?? '');
-        return AlerteDetailScreen(alerteId: id ?? 0);
-      },
-      transition: Transition.rightToLeft,
-    ),
+        final args = (Get.arguments ?? const {}) as Map;
+        final alerteId = args['alerteId'] as int?;
+        assert(alerteId != null, 'alerteId must be provided in arguments');
 
+        return AlerteDetailScreen(alerteId: alerteId!);
+      },
+    ),
     GetPage(
       name: '/bouteilles/:id',
       page: () {
