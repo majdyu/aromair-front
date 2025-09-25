@@ -14,8 +14,11 @@ class AppRoutes {
   static const alerteDetail = '/alertes/detail';
   // Détails bouteille
   static const bouteilleDetail = '/bouteilles';
+
+  //client diffuseur detail
+  static const clientDiffuseurDetail = '/client-diffuseurs/detail';
   // Détails réclamation
-  static const reclamationDetail = '/reclamations/:id';
+  static const reclamationDetail = '/reclamations/details';
   static const adminClients = '/admin-clients';
   static const adminDiffuseurs = '/admin-diffuseurs';
   static const adminAlertes = '/admin-alertes';

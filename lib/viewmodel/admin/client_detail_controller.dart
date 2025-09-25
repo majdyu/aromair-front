@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:front_erp_aromair/data/models/available_cab.dart';
+import 'package:front_erp_aromair/routes/app_routes.dart';
 import 'package:front_erp_aromair/utils/storage_helper.dart';
 import 'package:get/get.dart';
 import 'package:dio/dio.dart';
@@ -28,7 +29,7 @@ class ClientDetailController extends GetxController {
   final isEditing = false.obs;
   final formKey = GlobalKey<FormState>();
 
-// ------- pour l’affectation client-diffuseur -------
+  // ------- pour l’affectation client-diffuseur -------
   final cabsDisponibles = <AvailableCab>[].obs;
   final isLoadingCabs = false.obs;
 
@@ -41,10 +42,10 @@ class ClientDetailController extends GetxController {
   final frVisCtrl = TextEditingController();
 
   // Enums (affichés comme chips/menu)
-  final nature = RxnString();     // "ENTREPRISE" | "PARTICULIER"
-  final type = RxnString();       // "ACHAT" | "CONVENTION" | "MAD"
+  final nature = RxnString(); // "ENTREPRISE" | "PARTICULIER"
+  final type = RxnString(); // "ACHAT" | "CONVENTION" | "MAD"
   final importance = RxnString(); // "ELEVE" | "MOYENNE" | "FAIBLE"
-  final algo = RxnString();       // "FREQUENCE_PLAN" | "SUR_COMMANDE"
+  final algo = RxnString(); // "FREQUENCE_PLAN" | "SUR_COMMANDE"
 
   // Options statiques (UI)
   static const natureOptions = ["ENTREPRISE", "PARTICULIER"];
@@ -62,11 +63,16 @@ class ClientDetailController extends GetxController {
     _loadRole();
 
     // --- DI Dio
-    _dio = Get.isRegistered<Dio>() ? Get.find<Dio>() : Get.put<Dio>(buildDio(), permanent: true);
+    _dio = Get.isRegistered<Dio>()
+        ? Get.find<Dio>()
+        : Get.put<Dio>(buildDio(), permanent: true);
 
     // --- DI repo client-diffuseur
     if (!Get.isRegistered<ClientDiffuseurService>()) {
-      Get.put<ClientDiffuseurService>(ClientDiffuseurService(_dio), permanent: true);
+      Get.put<ClientDiffuseurService>(
+        ClientDiffuseurService(_dio),
+        permanent: true,
+      );
     }
     if (!Get.isRegistered<IClientDiffuseurRepository>()) {
       Get.put<IClientDiffuseurRepository>(
@@ -87,7 +93,9 @@ class ClientDetailController extends GetxController {
     error.value = null;
     try {
       final res = await _dio.get('/clients/$clientId/detail');
-      final data = ClientDetail.fromJson(Map<String, dynamic>.from(res.data as Map));
+      final data = ClientDetail.fromJson(
+        Map<String, dynamic>.from(res.data as Map),
+      );
       dto.value = data;
 
       // Pré-remplir le form
@@ -149,10 +157,17 @@ class ClientDetailController extends GetxController {
       await _dio.patch('/clients/$clientId', data: body);
       isEditing.value = false;
       await fetch();
-      Get.snackbar('Succès', 'Client mis à jour', snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar(
+        'Succès',
+        'Client mis à jour',
+        snackPosition: SnackPosition.BOTTOM,
+      );
     } on DioException catch (e) {
-      Get.snackbar('Erreur', 'HTTP ${e.response?.statusCode ?? '-'}: ${e.message}',
-          snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar(
+        'Erreur',
+        'HTTP ${e.response?.statusCode ?? '-'}: ${e.message}',
+        snackPosition: SnackPosition.BOTTOM,
+      );
     } catch (e) {
       Get.snackbar('Erreur', e.toString(), snackPosition: SnackPosition.BOTTOM);
     }
@@ -168,32 +183,35 @@ class ClientDetailController extends GetxController {
   }
 
   void goToClientDiffuseur(int clientDiffuseurId) {
-    Get.toNamed('/client-diffuseurs/$clientDiffuseurId');
+    Get.toNamed(
+      AppRoutes.clientDiffuseurDetail,
+      arguments: {'id': clientDiffuseurId},
+    );
   }
 
   // ------------------------------------------------------------
   // *** AFFECTATION CLIENT ⇄ CLIENT-DIFFUSEUR (INIT) ***
   // ------------------------------------------------------------
   Future<void> loadCabsDisponibles({String? q}) async {
-  try {
-    isLoadingCabs.value = true;
-    final list = await _clientDiffuseurRepo.getCabsDisponibles(q: q);
-    cabsDisponibles.assignAll(list);
-  } catch (e) {
-    Get.snackbar(
-      'Erreur',
-      'Chargement CAB disponibles: $e',
-      snackPosition: SnackPosition.BOTTOM,
-    );
-  } finally {
-    isLoadingCabs.value = false;
+    try {
+      isLoadingCabs.value = true;
+      final list = await _clientDiffuseurRepo.getCabsDisponibles(q: q);
+      cabsDisponibles.assignAll(list);
+    } catch (e) {
+      Get.snackbar(
+        'Erreur',
+        'Chargement CAB disponibles: $e',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } finally {
+      isLoadingCabs.value = false;
+    }
   }
-}
-
 
   Future<void> affecterClientDiffuseurInit({
     required String cab,
-    required Map<String, dynamic> req, // { emplacement, maxMinParJour?, programmes[] }
+    required Map<String, dynamic>
+    req, // { emplacement, maxMinParJour?, programmes[] }
   }) async {
     await _clientDiffuseurRepo.affecterInit(
       clientId: clientId,
@@ -212,7 +230,11 @@ class ClientDetailController extends GetxController {
   Future<void> retirerClientDiffuseur({required String cab}) async {
     await _clientDiffuseurRepo.retirerClient(cab);
     await fetch();
-    Get.snackbar('Succès', 'Diffuseur retiré du client', snackPosition: SnackPosition.BOTTOM);
+    Get.snackbar(
+      'Succès',
+      'Diffuseur retiré du client',
+      snackPosition: SnackPosition.BOTTOM,
+    );
   }
 
   @override
@@ -225,5 +247,4 @@ class ClientDetailController extends GetxController {
     frVisCtrl.dispose();
     super.onClose();
   }
-  
 }

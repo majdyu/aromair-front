@@ -5,12 +5,14 @@ class AromaScaffold extends StatelessWidget {
   final String title;
   final Widget body;
   final VoidCallback? onRefresh;
+  final FloatingActionButton? floatingActionButton;
 
   const AromaScaffold({
     super.key,
     required this.title,
     required this.body,
     this.onRefresh,
+    this.floatingActionButton,
   });
 
   @override

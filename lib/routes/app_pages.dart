@@ -105,10 +105,16 @@ class AppPages {
     ),
 
     GetPage(
-      name: '/client-diffuseurs/:id',
-      page: () => ClientDiffuseurDetailScreen(
-        clientDiffuseurId: int.parse(Get.parameters['id']!),
-      ),
+      name: AppRoutes.clientDiffuseurDetail,
+      page: () {
+        final args = (Get.arguments ?? const {}) as Map;
+        final idDiffusseur = args['id'] as int?;
+        assert(
+          idDiffusseur != null,
+          'Diffuseur ID must be provided in arguments',
+        );
+        return ClientDiffuseurDetailScreen(clientDiffuseurId: idDiffusseur!);
+      },
     ),
     GetPage(name: AppRoutes.adminClients, page: () => const ClientsScreen()),
     GetPage(
@@ -117,18 +123,22 @@ class AppPages {
     ),
     GetPage(name: AppRoutes.adminAlertes, page: () => const AlertesScreen()),
 
-    // Détail réclamation : /reclamations/:id
     GetPage(
-      name: AppRoutes.reclamationDetail, // '/reclamations/:id'
+      name: AppRoutes.reclamationDetail,
       page: () {
-        final idStr = Get.parameters['id'];
-        final id = int.tryParse(idStr ?? '');
-        if (id == null) {
+        final args = (Get.arguments ?? const {}) as Map;
+        final idReclamation = args['id'] as int?;
+        assert(
+          idReclamation != null,
+          'Reclamation ID must be provided in arguments',
+        );
+
+        if (idReclamation == null) {
           return const Scaffold(
             body: Center(child: Text('Réclamation ID invalide')),
           );
         }
-        return ReclamationDetailScreen(reclamationId: id); // <— pas de const
+        return ReclamationDetailScreen(reclamationId: idReclamation);
       },
     ),
 
