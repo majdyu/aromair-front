@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:front_erp_aromair/data/models/bouteille_detail.dart';
 import 'package:front_erp_aromair/data/repositories/admin/BouteillesRepository.dart';
 import 'package:front_erp_aromair/data/services/BouteillesService.dart';
+import 'package:front_erp_aromair/theme/colors.dart';
 import 'package:front_erp_aromair/view/widgets/admin_drawer.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -633,7 +634,7 @@ class BouteilleDetailScreen extends StatelessWidget {
         text,
         style: const TextStyle(
           fontWeight: FontWeight.w600,
-          color: Color(0xFF0A1E40),
+          color: AppColors.primary,
         ),
       ),
     );

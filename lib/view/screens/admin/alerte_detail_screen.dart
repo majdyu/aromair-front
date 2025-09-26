@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:front_erp_aromair/theme/colors.dart';
 import 'package:get/get.dart';
 
 import 'package:front_erp_aromair/viewmodel/admin/alerte_detail_controller.dart';
@@ -90,13 +91,13 @@ class AlerteDetailScreen extends StatelessWidget {
                             children: [
                               CircularProgressIndicator(
                                 valueColor: AlwaysStoppedAnimation<Color>(
-                                  Color(0xFF0A1E40),
+                                  AppColors.primary,
                                 ),
                               ),
                               SizedBox(height: 16),
                               Text(
                                 "Chargement des détails...",
-                                style: TextStyle(color: Color(0xFF0A1E40)),
+                                style: TextStyle(color: AppColors.primary),
                               ),
                             ],
                           ),
@@ -116,7 +117,7 @@ class AlerteDetailScreen extends StatelessWidget {
                                 "Erreur de chargement",
                                 style: TextStyle(
                                   fontSize: 18,
-                                  color: Color(0xFF0A1E40),
+                                  color: AppColors.primary,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -130,7 +131,7 @@ class AlerteDetailScreen extends StatelessWidget {
                               ElevatedButton(
                                 onPressed: c.fetch,
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF0A1E40),
+                                  backgroundColor: AppColors.primary,
                                   foregroundColor: Colors.white,
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 24,
@@ -149,7 +150,7 @@ class AlerteDetailScreen extends StatelessWidget {
                       ? const Center(
                           child: Text(
                             "Aucune donnée disponible",
-                            style: TextStyle(color: Color(0xFF0A1E40)),
+                            style: TextStyle(color: AppColors.primary),
                           ),
                         )
                       : SingleChildScrollView(
@@ -161,7 +162,7 @@ class AlerteDetailScreen extends StatelessWidget {
                                 children: [
                                   const Icon(
                                     Icons.warning,
-                                    color: Color(0xFF0A1E40),
+                                    color: AppColors.primary,
                                     size: 28,
                                   ),
                                   const SizedBox(width: 12),
@@ -170,7 +171,7 @@ class AlerteDetailScreen extends StatelessWidget {
                                     style: TextStyle(
                                       fontSize: 22,
                                       fontWeight: FontWeight.w700,
-                                      color: Color(0xFF0A1E40),
+                                      color: AppColors.primary,
                                     ),
                                   ),
                                   const Spacer(),
@@ -335,7 +336,7 @@ class AlerteDetailScreen extends StatelessWidget {
                                           },
                                           child: const Icon(
                                             Icons.info,
-                                            color: Color(0xFF0A1E40),
+                                            color: AppColors.primary,
                                           ),
                                         ),
                                       ),
@@ -350,7 +351,7 @@ class AlerteDetailScreen extends StatelessWidget {
                                       border: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(10),
                                         borderSide: const BorderSide(
-                                          color: Color(0xFF0A1E40),
+                                          color: AppColors.primary,
                                         ),
                                       ),
                                       contentPadding:
@@ -431,13 +432,13 @@ class AlerteDetailScreen extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(icon, color: const Color(0xFF0A1E40), size: 20),
+              Icon(icon, color: AppColors.primary, size: 20),
               const SizedBox(width: 8),
               Text(
                 title,
                 style: const TextStyle(
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF0A1E40),
+                  color: AppColors.primary,
                 ),
               ),
             ],
@@ -457,13 +458,13 @@ class AlerteDetailScreen extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(icon, color: const Color(0xFF0A1E40), size: 20),
+              Icon(icon, color: AppColors.primary, size: 20),
               const SizedBox(width: 8),
               Text(
                 title,
                 style: const TextStyle(
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF0A1E40),
+                  color: AppColors.primary,
                 ),
               ),
             ],

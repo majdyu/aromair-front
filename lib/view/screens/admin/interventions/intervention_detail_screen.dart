@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:front_erp_aromair/routes/app_routes.dart';
+import 'package:front_erp_aromair/theme/colors.dart';
 import 'package:front_erp_aromair/view/widgets/common/aroma_scaffold.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -52,13 +53,13 @@ class InterventionDetailScreen extends StatelessWidget {
                         children: [
                           CircularProgressIndicator(
                             valueColor: AlwaysStoppedAnimation<Color>(
-                              Color(0xFF0A1E40),
+                              AppColors.primary,
                             ),
                           ),
                           SizedBox(height: 16),
                           Text(
                             "Chargement des détails...",
-                            style: TextStyle(color: Color(0xFF0A1E40)),
+                            style: TextStyle(color: AppColors.primary),
                           ),
                         ],
                       ),
@@ -78,7 +79,7 @@ class InterventionDetailScreen extends StatelessWidget {
                             "Erreur de chargement",
                             style: TextStyle(
                               fontSize: 18,
-                              color: Color(0xFF0A1E40),
+                              color: AppColors.primary,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -92,7 +93,7 @@ class InterventionDetailScreen extends StatelessWidget {
                           ElevatedButton(
                             onPressed: c.fetch,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF0A1E40),
+                              backgroundColor: AppColors.primary,
                               foregroundColor: Colors.white,
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 24,
@@ -111,7 +112,7 @@ class InterventionDetailScreen extends StatelessWidget {
                   ? const Center(
                       child: Text(
                         "Aucune donnée disponible",
-                        style: TextStyle(color: Color(0xFF0A1E40)),
+                        style: TextStyle(color: AppColors.primary),
                       ),
                     )
                   : SingleChildScrollView(
@@ -123,7 +124,7 @@ class InterventionDetailScreen extends StatelessWidget {
                             children: [
                               const Icon(
                                 Icons.construction,
-                                color: Color(0xFF0A1E40),
+                                color: AppColors.primary,
                                 size: 28,
                               ),
                               const SizedBox(width: 12),
@@ -132,7 +133,7 @@ class InterventionDetailScreen extends StatelessWidget {
                                 style: TextStyle(
                                   fontSize: 22,
                                   fontWeight: FontWeight.w700,
-                                  color: Color(0xFF0A1E40),
+                                  color: AppColors.primary,
                                 ),
                               ),
                               const Spacer(),
@@ -274,7 +275,7 @@ class InterventionDetailScreen extends StatelessWidget {
                                             0xFF0A1E40,
                                           ),
                                           side: const BorderSide(
-                                            color: Color(0xFF0A1E40),
+                                            color: AppColors.primary,
                                           ),
                                           padding: const EdgeInsets.symmetric(
                                             horizontal: 16,
@@ -303,7 +304,7 @@ class InterventionDetailScreen extends StatelessWidget {
                                             0xFF0A1E40,
                                           ),
                                           side: const BorderSide(
-                                            color: Color(0xFF0A1E40),
+                                            color: AppColors.primary,
                                           ),
                                           padding: const EdgeInsets.symmetric(
                                             horizontal: 16,
@@ -440,7 +441,7 @@ class InterventionDetailScreen extends StatelessWidget {
                     ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: Color(0xFF0A1E40)),
+                      borderSide: const BorderSide(color: AppColors.primary),
                     ),
                     suffixIcon: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -461,7 +462,7 @@ class InterventionDetailScreen extends StatelessWidget {
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
                                     valueColor: AlwaysStoppedAnimation<Color>(
-                                      Color(0xFF0A1E40),
+                                      AppColors.primary,
                                     ),
                                   ),
                                 ),
@@ -552,7 +553,7 @@ class InterventionDetailScreen extends StatelessWidget {
                     ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: Color(0xFF0A1E40)),
+                      borderSide: const BorderSide(color: AppColors.primary),
                     ),
                     suffixIcon: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -571,7 +572,7 @@ class InterventionDetailScreen extends StatelessWidget {
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
                                     valueColor: AlwaysStoppedAnimation<Color>(
-                                      Color(0xFF0A1E40),
+                                      AppColors.primary,
                                     ),
                                   ),
                                 ),
@@ -632,13 +633,13 @@ class InterventionDetailScreen extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(icon, color: const Color(0xFF0A1E40), size: 20),
+                Icon(icon, color: AppColors.primary, size: 20),
                 const SizedBox(width: 8),
                 Text(
                   title,
                   style: const TextStyle(
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF0A1E40),
+                    color: AppColors.primary,
                   ),
                 ),
               ],
@@ -663,13 +664,13 @@ class InterventionDetailScreen extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(icon, color: const Color(0xFF0A1E40), size: 20),
+                Icon(icon, color: AppColors.primary, size: 20),
                 const SizedBox(width: 8),
                 Text(
                   title,
                   style: const TextStyle(
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF0A1E40),
+                    color: AppColors.primary,
                   ),
                 ),
               ],
@@ -711,7 +712,7 @@ class InterventionDetailScreen extends StatelessWidget {
           width: 4,
           height: 20,
           decoration: BoxDecoration(
-            color: const Color(0xFF0A1E40),
+            color: AppColors.primary,
             borderRadius: BorderRadius.circular(2),
           ),
         ),
@@ -721,7 +722,7 @@ class InterventionDetailScreen extends StatelessWidget {
           style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: Color(0xFF0A1E40),
+            color: AppColors.primary,
           ),
         ),
       ],
@@ -747,7 +748,7 @@ class InterventionDetailScreen extends StatelessWidget {
               headingRowHeight: 48,
               dataRowMinHeight: 48,
               headingRowColor: MaterialStateProperty.all(
-                const Color(0xFF0A1E40).withOpacity(0.8),
+                AppColors.primary.withOpacity(0.8),
               ),
               columns: columns,
               rows: rows,

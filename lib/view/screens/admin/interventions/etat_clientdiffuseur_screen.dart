@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:front_erp_aromair/routes/app_routes.dart';
+import 'package:front_erp_aromair/theme/colors.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
@@ -54,13 +55,13 @@ class EtatClientDiffuseurScreen extends StatelessWidget {
                             children: [
                               CircularProgressIndicator(
                                 valueColor: AlwaysStoppedAnimation<Color>(
-                                  Color(0xFF0A1E40),
+                                  AppColors.primary,
                                 ),
                               ),
                               SizedBox(height: 16),
                               Text(
                                 "Chargement des détails...",
-                                style: TextStyle(color: Color(0xFF0A1E40)),
+                                style: TextStyle(color: AppColors.primary),
                               ),
                             ],
                           ),
@@ -80,7 +81,7 @@ class EtatClientDiffuseurScreen extends StatelessWidget {
                                 "Erreur de chargement",
                                 style: TextStyle(
                                   fontSize: 18,
-                                  color: Color(0xFF0A1E40),
+                                  color: AppColors.primary,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -94,7 +95,7 @@ class EtatClientDiffuseurScreen extends StatelessWidget {
                               ElevatedButton(
                                 onPressed: c.fetch,
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF0A1E40),
+                                  backgroundColor: AppColors.primary,
                                   foregroundColor: Colors.white,
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 24,
@@ -113,7 +114,7 @@ class EtatClientDiffuseurScreen extends StatelessWidget {
                       ? const Center(
                           child: Text(
                             "Aucune donnée disponible",
-                            style: TextStyle(color: Color(0xFF0A1E40)),
+                            style: TextStyle(color: AppColors.primary),
                           ),
                         )
                       : SingleChildScrollView(
@@ -125,7 +126,7 @@ class EtatClientDiffuseurScreen extends StatelessWidget {
                                 children: [
                                   const Icon(
                                     Icons.air,
-                                    color: Color(0xFF0A1E40),
+                                    color: AppColors.primary,
                                     size: 28,
                                   ),
                                   const SizedBox(width: 12),
@@ -134,7 +135,7 @@ class EtatClientDiffuseurScreen extends StatelessWidget {
                                     style: TextStyle(
                                       fontSize: 22,
                                       fontWeight: FontWeight.w700,
-                                      color: Color(0xFF0A1E40),
+                                      color: AppColors.primary,
                                     ),
                                   ),
                                   const Spacer(),
@@ -234,13 +235,13 @@ class EtatClientDiffuseurScreen extends StatelessWidget {
         children: [
           Row(
             children: const [
-              Icon(Icons.info_outline, color: Color(0xFF0A1E40), size: 20),
+              Icon(Icons.info_outline, color: AppColors.primary, size: 20),
               SizedBox(width: 8),
               Text(
                 "Informations du diffuseur",
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF0A1E40),
+                  color: AppColors.primary,
                 ),
               ),
             ],
@@ -287,13 +288,13 @@ class EtatClientDiffuseurScreen extends StatelessWidget {
         children: [
           Row(
             children: const [
-              Icon(Icons.construction, color: Color(0xFF0A1E40), size: 20),
+              Icon(Icons.construction, color: AppColors.primary, size: 20),
               SizedBox(width: 8),
               Text(
                 "Informations d'intervention",
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF0A1E40),
+                  color: AppColors.primary,
                 ),
               ),
             ],
@@ -386,13 +387,13 @@ class EtatClientDiffuseurScreen extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(Icons.schedule, color: Color(0xFF0A1E40), size: 20),
+              const Icon(Icons.schedule, color: AppColors.primary, size: 20),
               const SizedBox(width: 8),
               const Text(
                 "Programmes",
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF0A1E40),
+                  color: AppColors.primary,
                 ),
               ),
               const SizedBox(width: 8),
@@ -429,13 +430,13 @@ class EtatClientDiffuseurScreen extends StatelessWidget {
         children: [
           Row(
             children: const [
-              Icon(Icons.inventory_2, color: Color(0xFF0A1E40), size: 20),
+              Icon(Icons.inventory_2, color: AppColors.primary, size: 20),
               SizedBox(width: 8),
               Text(
                 "Bouteille",
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF0A1E40),
+                  color: AppColors.primary,
                 ),
               ),
             ],
@@ -516,13 +517,13 @@ class EtatClientDiffuseurScreen extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(Icons.warning, color: Color(0xFF0A1E40), size: 20),
+              const Icon(Icons.warning, color: AppColors.primary, size: 20),
               const SizedBox(width: 8),
               const Text(
                 "Alertes",
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF0A1E40),
+                  color: AppColors.primary,
                 ),
               ),
               const SizedBox(width: 8),

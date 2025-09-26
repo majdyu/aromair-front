@@ -80,11 +80,9 @@ class AlerteDetailController extends GetxController {
     final id = current.clientId;
     if (id != null) {
       Get.toNamed(AppRoutes.detailClient, arguments: {'id': id});
-      //Get.toNamed('/clients/$id');
       return;
     }
 
-    // Fallback : ouvre la liste clients avec un filtre temporaire
     final q = (current.client).trim();
     Get.toNamed('/admin-clients', arguments: {'q': q});
   }

@@ -47,13 +47,13 @@ class ClientDetailScreen extends StatelessWidget {
                             children: [
                               CircularProgressIndicator(
                                 valueColor: AlwaysStoppedAnimation<Color>(
-                                  Color(0xFF0A1E40),
+                                  AppColors.primary,
                                 ),
                               ),
                               SizedBox(height: 16),
                               Text(
                                 "Chargement des détails...",
-                                style: TextStyle(color: Color(0xFF0A1E40)),
+                                style: TextStyle(color: AppColors.primary),
                               ),
                             ],
                           ),
@@ -73,7 +73,7 @@ class ClientDetailScreen extends StatelessWidget {
                                 "Erreur de chargement",
                                 style: TextStyle(
                                   fontSize: 18,
-                                  color: Color(0xFF0A1E40),
+                                  color: AppColors.primary,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -87,7 +87,7 @@ class ClientDetailScreen extends StatelessWidget {
                               ElevatedButton(
                                 onPressed: c.fetch,
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF0A1E40),
+                                  backgroundColor: AppColors.primary,
                                   foregroundColor: Colors.white,
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 24,
@@ -106,7 +106,7 @@ class ClientDetailScreen extends StatelessWidget {
                       ? const Center(
                           child: Text(
                             "Aucune donnée disponible",
-                            style: TextStyle(color: Color(0xFF0A1E40)),
+                            style: TextStyle(color: AppColors.primary),
                           ),
                         )
                       : SingleChildScrollView(
@@ -118,7 +118,7 @@ class ClientDetailScreen extends StatelessWidget {
                                 children: [
                                   const Icon(
                                     Icons.person,
-                                    color: Color(0xFF0A1E40),
+                                    color: AppColors.primary,
                                     size: 28,
                                   ),
                                   const SizedBox(width: 12),
@@ -127,7 +127,7 @@ class ClientDetailScreen extends StatelessWidget {
                                     style: TextStyle(
                                       fontSize: 22,
                                       fontWeight: FontWeight.w700,
-                                      color: Color(0xFF0A1E40),
+                                      color: AppColors.primary,
                                     ),
                                   ),
                                   const Spacer(),
@@ -147,13 +147,13 @@ class ClientDetailScreen extends StatelessWidget {
                                         const Icon(
                                           Icons.circle,
                                           size: 12,
-                                          color: Color(0xFF0A1E40),
+                                          color: AppColors.primary,
                                         ),
                                         const SizedBox(width: 6),
                                         Text(
                                           d.nature ?? "Client",
                                           style: const TextStyle(
-                                            color: Color(0xFF0A1E40),
+                                            color: AppColors.primary,
                                             fontWeight: FontWeight.w600,
                                           ),
                                         ),
@@ -315,9 +315,9 @@ class ClientDetailScreen extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       margin: const EdgeInsets.only(right: 6, bottom: 6),
       decoration: BoxDecoration(
-        color: const Color(0xFF0A1E40).withOpacity(0.15),
+        color: AppColors.primary.withOpacity(0.15),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFF0A1E40)),
+        border: Border.all(color: AppColors.primary),
       ),
       child: Text(t, style: const TextStyle(fontWeight: FontWeight.w600)),
     );
@@ -415,7 +415,7 @@ class ClientDetailScreen extends StatelessWidget {
                     tooltip: "Ouvrir dans Google Maps",
                     onPressed: c.openMaps,
                     icon: const Icon(Icons.map_outlined),
-                    color: const Color(0xFF0A1E40),
+                    color: AppColors.primary,
                     splashRadius: 20,
                   ),
                   if (!(rawAdr.startsWith('http://') ||
@@ -567,7 +567,7 @@ class ClientDetailScreen extends StatelessWidget {
                 child: CustomPaint(
                   painter: _DonutPainter(
                     progress: anim,
-                    color: const Color(0xFF0A1E40),
+                    color: AppColors.primary,
                     trackColor: const Color(0xFFEDEAF6),
                     strokeWidth: 11,
                   ),
@@ -757,13 +757,13 @@ class ClientDetailScreen extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(icon, color: const Color(0xFF0A1E40), size: 20),
+              Icon(icon, color: AppColors.primary, size: 20),
               const SizedBox(width: 8),
               Text(
                 title,
                 style: const TextStyle(
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF0A1E40),
+                  color: AppColors.primary,
                 ),
               ),
               const Spacer(),
@@ -784,7 +784,7 @@ class ClientDetailScreen extends StatelessWidget {
           width: 4,
           height: 20,
           decoration: BoxDecoration(
-            color: const Color(0xFF0A1E40),
+            color: AppColors.primary,
             borderRadius: BorderRadius.circular(2),
           ),
         ),
@@ -794,7 +794,7 @@ class ClientDetailScreen extends StatelessWidget {
           style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: Color(0xFF0A1E40),
+            color: AppColors.primary,
           ),
         ),
       ],
@@ -819,7 +819,7 @@ class ClientDetailScreen extends StatelessWidget {
               headingRowHeight: 48,
               dataRowMinHeight: 48,
               headingRowColor: MaterialStateProperty.all(
-                const Color(0xFF0A1E40).withOpacity(0.8),
+                AppColors.primary.withOpacity(0.8),
               ),
               columns: columns,
               rows: rows,

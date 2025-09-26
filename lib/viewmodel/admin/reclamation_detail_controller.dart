@@ -1,3 +1,4 @@
+import 'package:front_erp_aromair/routes/app_routes.dart';
 import 'package:get/get.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -30,7 +31,9 @@ class ReclamationDetailController extends GetxController {
     super.onInit();
 
     // DI
-    _dio = Get.isRegistered<Dio>() ? Get.find<Dio>() : Get.put<Dio>(buildDio(), permanent: true);
+    _dio = Get.isRegistered<Dio>()
+        ? Get.find<Dio>()
+        : Get.put<Dio>(buildDio(), permanent: true);
 
     if (!Get.isRegistered<ReclamationService>()) {
       Get.put<ReclamationService>(ReclamationService(_dio), permanent: true);
@@ -38,7 +41,10 @@ class ReclamationDetailController extends GetxController {
     _service = Get.find<ReclamationService>();
 
     if (!Get.isRegistered<IReclamationRepository>()) {
-      Get.put<IReclamationRepository>(ReclamationRepository(_service), permanent: true);
+      Get.put<IReclamationRepository>(
+        ReclamationRepository(_service),
+        permanent: true,
+      );
     }
     _repo = Get.find<IReclamationRepository>();
 
@@ -70,12 +76,18 @@ class ReclamationDetailController extends GetxController {
       await _repo.patchEtapes(reclamationId, value);
       dto.value = current.copyWith(etapes: value);
       if (value) {
-        Get.snackbar("Étape validée", "Vous pouvez maintenant planifier une intervention.",
-            snackPosition: SnackPosition.BOTTOM);
+        Get.snackbar(
+          "Étape validée",
+          "Vous pouvez maintenant planifier une intervention.",
+          snackPosition: SnackPosition.BOTTOM,
+        );
       }
     } catch (e) {
-      Get.snackbar("Erreur", "Impossible de mettre à jour l'étape: $e",
-          snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar(
+        "Erreur",
+        "Impossible de mettre à jour l'étape: $e",
+        snackPosition: SnackPosition.BOTTOM,
+      );
     } finally {
       isPatching.value = false;
     }
@@ -92,11 +104,17 @@ class ReclamationDetailController extends GetxController {
     try {
       await _repo.patchStatut(reclamationId, statut);
       dto.value = current.copyWith(statut: statut);
-      Get.snackbar("Succès", "Statut mis à jour: ${statut.name}",
-          snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar(
+        "Succès",
+        "Statut mis à jour: ${statut.name}",
+        snackPosition: SnackPosition.BOTTOM,
+      );
     } catch (e) {
-      Get.snackbar("Erreur", "Impossible de changer le statut: $e",
-          snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar(
+        "Erreur",
+        "Impossible de changer le statut: $e",
+        snackPosition: SnackPosition.BOTTOM,
+      );
     } finally {
       isPatching.value = false;
     }
@@ -105,7 +123,7 @@ class ReclamationDetailController extends GetxController {
   void goToClient() {
     final id = dto.value?.clientId;
     if (id == null) return;
-    Get.toNamed('/clients/$id');
+    Get.toNamed(AppRoutes.detailClient, arguments: {'id': id});
   }
 
   Future<void> planifierIntervention(BuildContext context) async {
@@ -113,14 +131,21 @@ class ReclamationDetailController extends GetxController {
     if (cur == null) return;
 
     if (!cur.canPlanifier) {
-      Get.snackbar("Indisponible", "Validez d'abord l'appel téléphonique.",
-          snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar(
+        "Indisponible",
+        "Validez d'abord l'appel téléphonique.",
+        snackPosition: SnackPosition.BOTTOM,
+      );
       return;
     }
 
     final bool? ok = await showAddInterventionDialog(context);
     if (ok == true) {
-      Get.snackbar("Succès", "Intervention ajoutée.", snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar(
+        "Succès",
+        "Intervention ajoutée.",
+        snackPosition: SnackPosition.BOTTOM,
+      );
       // await fetch();
     }
   }

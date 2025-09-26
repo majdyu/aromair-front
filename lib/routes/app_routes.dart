@@ -14,7 +14,6 @@ class AppRoutes {
   static const alerteDetail = '/alertes/detail';
   // Détails bouteille
   static const bouteilleDetail = '/bouteilles';
-
   //client diffuseur detail
   static const clientDiffuseurDetail = '/client-diffuseurs/detail';
   // Détails réclamation
