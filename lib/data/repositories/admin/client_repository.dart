@@ -1,9 +1,12 @@
 import 'package:front_erp_aromair/data/models/client_detail.dart';
 import 'package:front_erp_aromair/data/services/client_service.dart';
+// ADD THIS:
+import 'package:front_erp_aromair/data/models/client.dart'; // contains ClientRow
 
 abstract class IClientRepository {
   Future<ClientDetail> getClientDetail(int clientId);
   Future<void> updateClient(int id, Map<String, dynamic> body);
+  Future<List<ClientRow>> getClients({String? q, String? type});
 }
 
 class ClientRepository implements IClientRepository {
@@ -19,4 +22,15 @@ class ClientRepository implements IClientRepository {
   @override
   Future<void> updateClient(int id, Map<String, dynamic> body) =>
       _service.updateClient(id, body);
+
+  // ADD THIS:
+  @override
+  Future<List<ClientRow>> getClients({String? q, String? type}) async {
+    final raw = await _service.getClients(q: q, type: type);
+    return raw
+        .map((e) => ClientRow.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<bool> toggleActive(int id) => _service.toggleActive(id);
 }
