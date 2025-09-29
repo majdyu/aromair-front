@@ -34,7 +34,6 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     final bool isLandscape =
         MediaQuery.of(context).orientation == Orientation.landscape;
-    final double screenWidth = MediaQuery.of(context).size.width;
 
     return Shortcuts(
       shortcuts: const <ShortcutActivator, Intent>{
