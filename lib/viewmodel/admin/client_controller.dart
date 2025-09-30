@@ -144,7 +144,7 @@ class ClientController extends GetxController {
 
   void setType(String? v) {
     type = v;
-    _fetchWithFilters(); // Trigger web service call when type changes
+    _fetchWithFilters();
   }
 
   @override

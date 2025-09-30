@@ -54,6 +54,7 @@ class InterventionsController extends GetxController {
       );
       items.assignAll(list);
     } catch (e) {
+      print("Error fetching interventions: $e");
       error.value = e.toString();
     } finally {
       isLoading.value = false;
