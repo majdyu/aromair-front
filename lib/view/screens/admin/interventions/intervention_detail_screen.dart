@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:front_erp_aromair/data/models/equipe.dart';
 import 'package:front_erp_aromair/routes/app_routes.dart';
 import 'package:front_erp_aromair/theme/colors.dart';
 import 'package:front_erp_aromair/view/widgets/common/aroma_scaffold.dart';
@@ -37,6 +38,9 @@ class InterventionDetailScreen extends StatelessWidget {
               final payStr = d.payement == null ? '' : d.payement!.toString();
               if (c.payCtrl.text != payStr) c.payCtrl.text = payStr;
             }
+
+            // keep basic form hydrated when not editing
+            c.hydrateBasicFormIfIdle();
           });
         }
 
@@ -188,32 +192,69 @@ class InterventionDetailScreen extends StatelessWidget {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
+                                    // ==================== INFORMATIONS DE BASE (view/edit) ====================
                                     _infoCard(
                                       "Informations de base",
                                       Icons.info_outline,
                                       [
-                                        _infoRow("Date", _fmtDate(d.date)),
-                                        _infoRow(
-                                          "Dernière intervention",
-                                          d.derniereIntervention != null
-                                              ? _fmtDate(
-                                                  d.derniereIntervention!,
-                                                )
-                                              : "-",
-                                        ),
-                                        _infoRow("Technicien", d.userNom),
-                                        _infoRow("Client", d.clientNom),
-                                        _infoRow(
-                                          "Paiement obligatoire",
-                                          d.estPayementObligatoire
-                                              ? "Oui"
-                                              : "Non",
-                                        ),
-                                        _infoRow(
-                                          "Montant",
-                                          "${_fmtMoney(d.payement)} TND",
+                                        Obx(
+                                          () => c.isEditingBasicInfo.value
+                                              ? _basicInfoForm(c) // EDIT
+                                              : _basicInfoView(d), // VIEW
                                         ),
                                       ],
+                                      trailing: Obx(() {
+                                        if (c.isEditingBasicInfo.value) {
+                                          return Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              IconButton(
+                                                tooltip: "Annuler",
+                                                icon: const Icon(
+                                                  Icons.close,
+                                                  color: Colors.red,
+                                                ),
+                                                onPressed:
+                                                    c.isSavingBasicInfo.value
+                                                    ? null
+                                                    : c.cancelEditBasicInfo,
+                                              ),
+                                              IconButton(
+                                                tooltip: "Enregistrer",
+                                                icon: c.isSavingBasicInfo.value
+                                                    ? const SizedBox(
+                                                        width: 18,
+                                                        height: 18,
+                                                        child:
+                                                            CircularProgressIndicator(
+                                                              strokeWidth: 2,
+                                                            ),
+                                                      )
+                                                    : const Icon(
+                                                        Icons.check,
+                                                        color:
+                                                            AppColors.primary,
+                                                      ),
+                                                onPressed:
+                                                    c.isSavingBasicInfo.value
+                                                    ? null
+                                                    : c.submitBasicInfo,
+                                              ),
+                                            ],
+                                          );
+                                        } else {
+                                          return IconButton(
+                                            tooltip:
+                                                "Modifier les informations de base",
+                                            icon: const Icon(
+                                              Icons.edit_outlined,
+                                              color: AppColors.primary,
+                                              size: 20,
+                                            ),
+                                            onPressed: c.startEditBasicInfo,
+                                          );
+                                        }
+                                      }),
                                     ),
                                     const SizedBox(height: 16),
                                     _remarqueWidget(c),
@@ -387,7 +428,6 @@ class InterventionDetailScreen extends StatelessWidget {
                                           arguments: {'alerteId': a.id},
                                         );
                                       },
-
                                       cells: [
                                         DataCell(Text(a.date)),
                                         DataCell(Text(a.probleme ?? '-')),
@@ -405,6 +445,78 @@ class InterventionDetailScreen extends StatelessWidget {
         );
       },
     );
+  }
+
+  Widget _infoRowWidget(String label, Widget child) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 160,
+            child: Text(
+              "$label:",
+              style: const TextStyle(fontWeight: FontWeight.w500),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(child: child),
+        ],
+      ),
+    );
+  }
+
+  Widget _techniciensChips(List<String> names) {
+    if (names.isEmpty)
+      return Text('-', style: TextStyle(color: Colors.grey.shade700));
+
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: names.map((n) {
+        final initials = _initials(n);
+        return Chip(
+          label: Text(
+            n,
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              color: AppColors.primary,
+            ),
+          ),
+          avatar: CircleAvatar(
+            radius: 10,
+            backgroundColor: AppColors.primary.withOpacity(0.16),
+            child: Text(
+              initials,
+              style: const TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+                color: AppColors.primary,
+              ),
+            ),
+          ),
+          backgroundColor: AppColors.primary.withOpacity(0.08),
+          side: BorderSide(color: AppColors.primary.withOpacity(0.25)),
+          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          visualDensity: VisualDensity.compact,
+        );
+      }).toList(),
+    );
+  }
+
+  String _initials(String name) {
+    final parts = name
+        .trim()
+        .split(RegExp(r'\s+'))
+        .where((p) => p.isNotEmpty)
+        .toList();
+    var out = '';
+    for (final p in parts) {
+      out += p[0].toUpperCase();
+      if (out.length >= 2) break;
+    }
+    return out.isEmpty ? '?' : out;
   }
 
   // ---------- Remarque (édition inline) ----------
@@ -621,7 +733,12 @@ class InterventionDetailScreen extends StatelessWidget {
   }
 
   // ---------- UI Components ----------
-  Widget _infoCard(String title, IconData icon, List<Widget> children) {
+  Widget _infoCard(
+    String title,
+    IconData icon,
+    List<Widget> children, {
+    Widget? trailing,
+  }) {
     return Card(
       // back to regular Card
       elevation: 2,
@@ -642,6 +759,8 @@ class InterventionDetailScreen extends StatelessWidget {
                     color: AppColors.primary,
                   ),
                 ),
+                const Spacer(),
+                if (trailing != null) trailing,
               ],
             ),
             const SizedBox(height: 12),
@@ -810,6 +929,208 @@ class InterventionDetailScreen extends StatelessWidget {
       default:
         return s;
     }
+  }
+
+  // ===================== HELPERS ADDED FOR BASIC INFO FORM =====================
+
+  // READ-ONLY VIEW (unchanged content, grouped)
+  Widget _basicInfoView(dynamic d) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _infoRow("Date", _fmtDate(d.date)),
+        _infoRow(
+          "Dernière intervention",
+          d.derniereIntervention != null
+              ? _fmtDate(d.derniereIntervention!)
+              : "-",
+        ),
+        _infoRow("Equipe Nom", d.equipeNom),
+        _infoRowWidget("Techniciens", _techniciensChips(d.techniciens)),
+        _infoRow("Client", d.clientNom),
+        _infoRow(
+          "Paiement obligatoire",
+          d.estPayementObligatoire ? "Oui" : "Non",
+        ),
+        _infoRow("Montant", "${_fmtMoney(d.payement)} TND"),
+      ],
+    );
+  }
+
+  // EDIT FORM (inline) — Client read-only, Équipe dropdown, Techniciens locked
+  Widget _basicInfoForm(InterventionDetailController c) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _labeledField(
+          "Date",
+          TextField(
+            controller: c.dateBasicCtrl,
+            readOnly: true,
+            decoration: InputDecoration(
+              hintText: 'jj/MM/aaaa',
+              suffixIcon: const Icon(Icons.calendar_today),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 10,
+              ),
+            ),
+            onTap: () async {
+              DateTime init = DateTime.now();
+              try {
+                init = DateFormat(
+                  'dd/MM/yyyy',
+                ).parseStrict(c.dateBasicCtrl.text);
+              } catch (_) {}
+              final picked = await showDatePicker(
+                context: Get.context!,
+                initialDate: init,
+                firstDate: DateTime(2000),
+                lastDate: DateTime(2100),
+              );
+              if (picked != null) {
+                c.dateBasicCtrl.text = DateFormat('dd/MM/yyyy').format(picked);
+              }
+            },
+          ),
+        ),
+
+        const SizedBox(height: 12),
+
+        // ----- ÉQUIPE: dropdown from service -----
+        _labeledField(
+          "Equipe",
+          Obx(() {
+            final items = c.equipes;
+            if (items.isEmpty) {
+              return InputDecorator(
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                ),
+                child: Row(
+                  children: const [
+                    SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                    SizedBox(width: 8),
+                    Text("Chargement des équipes..."),
+                  ],
+                ),
+              );
+            }
+
+            return DropdownButtonFormField<Equipe>(
+              value: c.selectedEquipe.value,
+              items: items
+                  .map(
+                    (e) =>
+                        DropdownMenuItem<Equipe>(value: e, child: Text(e.nom)),
+                  )
+                  .toList(),
+              onChanged: (e) => c.onEquipeSelected(e),
+              decoration: InputDecoration(
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
+              ),
+              hint: const Text("Sélectionner une équipe"),
+            );
+          }),
+        ),
+
+        const SizedBox(height: 12),
+
+        // ----- TECHNICIENS: locked (chips from selected équipe or existing) -----
+        _labeledField(
+          "Techniciens",
+          Obx(() {
+            final techs =
+                c.selectedEquipe.value?.techniciens ??
+                ((c.techniciensBasicCtrl.text.isNotEmpty)
+                    ? c.techniciensBasicCtrl.text
+                          .split(',')
+                          .map((s) => s.trim())
+                          .where((s) => s.isNotEmpty)
+                          .toList()
+                    : (c.detail.value?.techniciens ?? const <String>[]));
+            return _techniciensChips(techs);
+          }),
+        ),
+
+        const SizedBox(height: 12),
+
+        // ----- CLIENT: read-only -----
+        _labeledField(
+          "Client",
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade50,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Colors.grey.shade300),
+            ),
+            child: Text(
+              c.detail.value?.clientNom ?? '-',
+              style: const TextStyle(fontWeight: FontWeight.w500),
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 12),
+
+        _labeledField(
+          "Paiement obligatoire",
+          Obx(
+            () => Switch(
+              value: c.payObligatoire.value,
+              onChanged: (v) => c.payObligatoire.value = v,
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 8),
+        Text(
+          "NB : Le montant reste éditable dans le bloc \"Montant à payer (TND)\".",
+          style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+        ),
+      ],
+    );
+  }
+
+  // Reuse your two-column row layout for editable widgets
+  Widget _labeledField(String label, Widget field) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 160,
+            child: Text(
+              "$label:",
+              style: const TextStyle(fontWeight: FontWeight.w500),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(child: field),
+        ],
+      ),
+    );
   }
 }
 

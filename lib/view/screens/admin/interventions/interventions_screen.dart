@@ -532,7 +532,7 @@ class _InterventionListTile extends StatelessWidget {
                         const SizedBox(width: 6),
                         Expanded(
                           child: Text(
-                            it.technicien,
+                            it.equipe,
                             style: AromaText.body.copyWith(
                               fontWeight: FontWeight.w500,
                               color: AppColors.textSecondary,

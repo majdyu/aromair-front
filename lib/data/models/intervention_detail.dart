@@ -8,13 +8,14 @@ class InterventionDetail {
   final double? payement;
   final int? clientId;
   final String clientNom;
-  final int? userId;
-  final String userNom;
+  final int? equipeId;
+  final String equipeNom;
   final String? titreFicheMaintenance;
   final String? ficheMaintenance;
   final List<ClientDiffuseurRow> diffuseurs;
   final List<AlerteRow> alertes;
   final List<TafRow> tafs;
+  final List<String> techniciens;
 
   InterventionDetail({
     required this.id,
@@ -26,13 +27,14 @@ class InterventionDetail {
     required this.payement,
     required this.clientId,
     required this.clientNom,
-    required this.userId,
-    required this.userNom,
+    required this.equipeId,
+    required this.equipeNom,
     required this.titreFicheMaintenance,
     required this.ficheMaintenance,
     required this.diffuseurs,
     required this.alertes,
     required this.tafs,
+    required this.techniciens,
   });
 
   /// ✅ Ajout: copyWith pour permettre l’update optimiste
@@ -46,13 +48,14 @@ class InterventionDetail {
     double? payement,
     int? clientId,
     String? clientNom,
-    int? userId,
-    String? userNom,
+    int? equipeId,
+    String? equipeNom,
     String? titreFicheMaintenance,
     String? ficheMaintenance,
     List<ClientDiffuseurRow>? diffuseurs,
     List<AlerteRow>? alertes,
     List<TafRow>? tafs,
+    List<String>? techniciens,
   }) {
     return InterventionDetail(
       id: id ?? this.id,
@@ -65,14 +68,15 @@ class InterventionDetail {
       payement: payement ?? this.payement,
       clientId: clientId ?? this.clientId,
       clientNom: clientNom ?? this.clientNom,
-      userId: userId ?? this.userId,
-      userNom: userNom ?? this.userNom,
+      equipeId: equipeId ?? this.equipeId,
+      equipeNom: equipeNom ?? this.equipeNom,
       titreFicheMaintenance:
           titreFicheMaintenance ?? this.titreFicheMaintenance,
       ficheMaintenance: ficheMaintenance ?? this.ficheMaintenance,
       diffuseurs: diffuseurs ?? this.diffuseurs,
       alertes: alertes ?? this.alertes,
       tafs: tafs ?? this.tafs,
+      techniciens: this.techniciens,
     );
   }
 
@@ -108,20 +112,54 @@ class InterventionDetail {
       estPayementObligatoire: (j['estPayementObligatoire'] as bool?) ?? false,
       statut: (j['statut'] as String?) ?? 'EN_COURS',
       remarque: j['remarque'] as String?,
-      payement: (j['payement'] as num?)?.toDouble(), // ✅ parse paiement
+      payement: (j['payement'] as num?)?.toDouble(),
       clientId: j['clientId'] as int?,
       clientNom: (j['clientNom'] as String?) ?? '-',
-      userId: j['userId'] as int?,
-      userNom: (j['userNom'] as String?) ?? '-',
+      equipeId: j['equipeId'] as int?,
+      equipeNom: (j['equipeNom'] as String?) ?? '-',
       titreFicheMaintenance: j['titreFicheMaintenance'] as String?,
       ficheMaintenance: j['ficheMaintenance'] as String?,
       diffuseurs: diffs,
       alertes: al,
       tafs: tafRows,
+      techniciens: parseTechniciens(j['techniciens']), // ✅ NEW
     );
   }
 }
 
+List<String> parseTechniciens(dynamic v) {
+  if (v == null) return const [];
+  if (v is List) {
+    final res = v
+        .map((e) {
+          if (e == null) return null;
+          if (e is String) return e;
+          if (e is Map) {
+            final m = Map<String, dynamic>.from(e);
+            final val =
+                m['nom'] ??
+                m['name'] ??
+                m['username'] ??
+                m['label'] ??
+                (m.isNotEmpty ? m.values.first : null);
+            return val?.toString();
+          }
+          return e.toString();
+        })
+        .whereType<String>()
+        .toList();
+    return List.unmodifiable(res);
+  }
+  if (v is String) {
+    final res = v
+        .split(',')
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .toList();
+    return List.unmodifiable(res);
+  }
+  return const [];
+}
 
 class TafRow {
   final int id;
@@ -137,18 +175,17 @@ class TafRow {
   });
 
   factory TafRow.fromJson(Map<String, dynamic> j) => TafRow(
-        id: j['id'] as int,
-        type: (j['type'] as String?) ?? '-',
-        clientDiffuseurId: j['clientDiffuseurId'] as int?,
-        clientDiffuseurLabel: (j['clientDiffuseurLabel'] as String?) ?? '-',
-      );
+    id: j['id'] as int,
+    type: (j['type'] as String?) ?? '-',
+    clientDiffuseurId: j['clientDiffuseurId'] as int?,
+    clientDiffuseurLabel: (j['clientDiffuseurLabel'] as String?) ?? '-',
+  );
 }
 
 class ClientDiffuseurRow {
   final int id;
   final String cab;
   final String modeleDiffuseur;
-  /// Peut venir sous la clé `typeDiffuseur` **ou** `typeCarte` côté API.
   final String _type;
   final String emplacement;
 
@@ -161,16 +198,15 @@ class ClientDiffuseurRow {
   }) : _type = type;
 
   String get typeDiffuseur => _type; // getter canonique
-  String get typeCarte => _type;     // alias
+  String get typeCarte => _type; // alias
 
   factory ClientDiffuseurRow.fromJson(Map<String, dynamic> j) {
     return ClientDiffuseurRow(
       id: j['id'] as int,
       cab: (j['cab'] as String?) ?? '-',
       modeleDiffuseur: (j['modeleDiffuseur'] as String?) ?? '-',
-      type: (j['typeDiffuseur'] as String?) ??
-          (j['typeCarte'] as String?) ??
-          '-',
+      type:
+          (j['typeDiffuseur'] as String?) ?? (j['typeCarte'] as String?) ?? '-',
       emplacement: (j['emplacement'] as String?) ?? '-',
     );
   }
@@ -178,7 +214,7 @@ class ClientDiffuseurRow {
 
 class AlerteRow {
   final int id;
-  final String date;        // "dd/MM/yyyy" (ou ce que renvoie l'API)
+  final String date; // "dd/MM/yyyy" (ou ce que renvoie l'API)
   final String? probleme;
   final String? cause;
   final String etatResolution;
@@ -192,12 +228,10 @@ class AlerteRow {
   });
 
   factory AlerteRow.fromJson(Map<String, dynamic> j) => AlerteRow(
-        id: (j['id'] as num).toInt(),
-        date: (j['date'] ?? '-').toString(),
-        probleme: j['probleme']?.toString(),
-        cause: j['cause']?.toString(),
-        etatResolution: (j['etatResolution'] ?? '-').toString(),
-      );
-      
+    id: (j['id'] as num).toInt(),
+    date: (j['date'] ?? '-').toString(),
+    probleme: j['probleme']?.toString(),
+    cause: j['cause']?.toString(),
+    etatResolution: (j['etatResolution'] ?? '-').toString(),
+  );
 }
-

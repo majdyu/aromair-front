@@ -40,7 +40,7 @@ class InterventionsRepository {
     bool? estPayementObligatoire,
     String? remarque,
     double? payement,
-    int? userId,
+    int? equipeId,
   }) {
     return _service.updateMeta(
       id,
@@ -48,7 +48,7 @@ class InterventionsRepository {
       estPayementObligatoire: estPayementObligatoire,
       remarque: remarque,
       payement: payement,
-      userId: userId,
+      equipeId: equipeId,
     );
   }
 

@@ -3,14 +3,14 @@ import 'package:intl/intl.dart';
 class InterventionItem {
   final int id;
   final String client;
-  final String? technicien;
+  final String equipe;
   final DateTime? derniereIntervention;
   final String statutRaw; // <— renomme explicitement
 
   InterventionItem({
     required this.id,
     required this.client,
-    this.technicien,
+    required this.equipe,
     required this.derniereIntervention,
     required this.statutRaw,
   });
@@ -19,7 +19,7 @@ class InterventionItem {
     return InterventionItem(
       id: j['id'] as int,
       client: (j['client'] ?? '-') as String,
-      technicien: (j['equipe'] ?? '-') as String,
+      equipe: (j['equipe'] ?? '-') as String,
       derniereIntervention: parseBackendDate(j['derniereIntervention']),
       // NE PAS mettre "Tout Statut" ici
       statutRaw: ((j['statut'] ?? 'EN_COURS') as String).trim(),
