@@ -1,3 +1,4 @@
+import 'package:front_erp_aromair/data/models/alert.dart';
 import 'package:front_erp_aromair/data/models/alerte_detail.dart';
 import 'package:front_erp_aromair/data/services/alertes_service.dart';
 
@@ -12,4 +13,9 @@ class AlertesRepository {
 
   Future<void> toggle(int id, {String? decisionPrise}) =>
       svc.toggle(id, decisionPrise: decisionPrise);
+
+  Future<List<IncidentItem>> list() async {
+    final raw = await svc.getList();
+    return raw.map((e) => IncidentItem.fromJson(e)).toList(growable: false);
+  }
 }

@@ -13,11 +13,10 @@ class AlertesService {
       'alertes/$id',
       options: Options(
         responseType: ResponseType.json,
-        headers: { if (token != null) 'Authorization': 'Bearer $token' },
+        headers: {if (token != null) 'Authorization': 'Bearer $token'},
       ),
     );
 
-    // Défense : si backend renvoie du HTML (erreur de baseUrl/chemin), on lève une erreur claire
     if (resp.data is! Map) {
       throw StateError(
         'Réponse non-JSON reçue pour GET alertes/$id. '
@@ -28,7 +27,6 @@ class AlertesService {
   }
 
   /// PATCH /api/alertes/{id}/toggle
-  /// Body optionnel: { "decisionPrise": "..." }
   Future<void> toggle(int id, {String? decisionPrise}) async {
     final token = (await StorageHelper.getUser())?['token'];
 
@@ -36,9 +34,34 @@ class AlertesService {
       'alertes/$id/toggle',
       data: decisionPrise == null ? null : {'decisionPrise': decisionPrise},
       options: Options(
-        responseType: ResponseType.json, // même si 204, on force json pour homogénéité
-        headers: { if (token != null) 'Authorization': 'Bearer $token' },
+        responseType: ResponseType.json,
+        headers: {if (token != null) 'Authorization': 'Bearer $token'},
       ),
     );
+  }
+
+  /// GET /api/alertes/list
+  /// No pagination: backend returns a JSON array at root.
+  Future<List<Map<String, dynamic>>> getList() async {
+    final token = (await StorageHelper.getUser())?['token'];
+
+    final resp = await _dio.get(
+      'alertes/list',
+      options: Options(
+        responseType: ResponseType.json,
+        headers: {if (token != null) 'Authorization': 'Bearer $token'},
+      ),
+    );
+
+    final data = resp.data;
+    if (data is! List) {
+      throw StateError(
+        'Réponse inattendue pour GET alertes/list: attendu une liste JSON [].',
+      );
+    }
+
+    return data
+        .map((e) => Map<String, dynamic>.from(e as Map))
+        .toList(growable: false);
   }
 }
