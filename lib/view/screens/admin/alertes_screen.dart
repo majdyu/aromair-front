@@ -333,7 +333,7 @@ class _AlerteCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final resolved = alert.etatResolution == true;
     final fmt = DateFormat('dd/MM/yyyy • HH:mm');
-    final dateStr = alert.date != null ? fmt.format(alert.date!) : 'N/A';
+    final dateStr = fmt.format(alert.date);
 
     return MouseRegion(
       cursor: SystemMouseCursors.click,
@@ -410,7 +410,7 @@ class _AlerteCard extends StatelessWidget {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      alert.probleme ?? 'Incident signalé',
+                                      alert.probleme,
                                       style: AromaText.title.copyWith(
                                         fontWeight: FontWeight.w600,
                                         fontSize: 16,
@@ -418,12 +418,11 @@ class _AlerteCard extends StatelessWidget {
                                       maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
                                     ),
-                                    if (alert.cause != null &&
-                                        alert.cause!.isNotEmpty)
+                                    if (alert.cause.isNotEmpty)
                                       Padding(
                                         padding: const EdgeInsets.only(top: 4),
                                         child: Text(
-                                          alert.cause!,
+                                          alert.cause,
                                           style: AromaText.caption.copyWith(
                                             color: AppColors.textSecondary,
                                             fontStyle: FontStyle.italic,
@@ -478,15 +477,13 @@ class _AlerteCard extends StatelessWidget {
                                 _InfoItem(
                                   icon: Icons.business_rounded,
                                   label: "Client",
-                                  value: alert.clientNom ?? 'Non spécifié',
+                                  value: alert.clientNom,
                                 ),
                                 const SizedBox(width: 20),
                                 _InfoItem(
                                   icon: Icons.device_hub_rounded,
                                   label: "Diffuseur",
-                                  value:
-                                      alert.diffuseurDesignation ??
-                                      'Non spécifié',
+                                  value: alert.diffuseurDesignation,
                                 ),
                                 const SizedBox(width: 20),
                                 _InfoItem(
@@ -566,38 +563,6 @@ class _AlerteCard extends StatelessWidget {
 
   IconData _getStatusIcon(bool resolved) {
     return resolved ? Icons.check_circle_rounded : Icons.warning_amber_rounded;
-  }
-
-  Color _getPriorityColor(String priority) {
-    switch (priority.toLowerCase()) {
-      case 'haute':
-      case 'high':
-        return AppColors.danger;
-      case 'moyenne':
-      case 'medium':
-        return AppColors.warning;
-      case 'basse':
-      case 'low':
-        return AppColors.success;
-      default:
-        return AppColors.textSecondary;
-    }
-  }
-
-  String _getPriorityText(String priority) {
-    switch (priority.toLowerCase()) {
-      case 'haute':
-      case 'high':
-        return 'Haute priorité';
-      case 'moyenne':
-      case 'medium':
-        return 'Priorité moyenne';
-      case 'basse':
-      case 'low':
-        return 'Basse priorité';
-      default:
-        return priority;
-    }
   }
 }
 

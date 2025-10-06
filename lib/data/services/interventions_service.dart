@@ -8,7 +8,6 @@ import 'package:front_erp_aromair/data/models/intervention_item.dart';
 import 'package:intl/intl.dart';
 
 class InterventionsService {
-  // baseUrl = http://localhost:8089/aromair_erp/api
   final Dio _dio = buildDio();
 
   Future<List<InterventionItem>> list({

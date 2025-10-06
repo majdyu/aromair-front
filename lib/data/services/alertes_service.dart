@@ -40,8 +40,6 @@ class AlertesService {
     );
   }
 
-  /// GET /api/alertes/list
-  /// No pagination: backend returns a JSON array at root.
   Future<List<Map<String, dynamic>>> getList() async {
     final token = (await StorageHelper.getUser())?['token'];
 

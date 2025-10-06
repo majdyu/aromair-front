@@ -10,7 +10,8 @@ import 'package:front_erp_aromair/view/screens/admin/interventions/etat_clientdi
 import 'package:front_erp_aromair/view/screens/admin/interventions/intervention_detail_screen.dart';
 import 'package:front_erp_aromair/view/screens/admin/interventions/interventions_screen.dart';
 import 'package:front_erp_aromair/view/screens/admin/rapports_screen.dart';
-import 'package:front_erp_aromair/view/screens/admin/reclamations_detail_screen.dart';
+import 'package:front_erp_aromair/view/screens/admin/reclamation/reclamation_screen.dart';
+import 'package:front_erp_aromair/view/screens/admin/reclamation/reclamations_detail_screen.dart';
 import 'package:front_erp_aromair/view/screens/admin/utilisateurs_screen.dart';
 import 'package:get/get.dart';
 import '../view/screens/login_screen.dart';
@@ -80,6 +81,10 @@ class AppPages {
 
         return AlerteDetailScreen(alerteId: alerteId!);
       },
+    ),
+    GetPage(
+      name: AppRoutes.adminReclamations,
+      page: () => ReclamationsScreen(),
     ),
     GetPage(
       name: AppRoutes.bouteilleDetail,

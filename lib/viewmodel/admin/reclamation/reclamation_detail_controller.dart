@@ -1,3 +1,4 @@
+import 'package:front_erp_aromair/data/enums/statut_reclamation.dart';
 import 'package:front_erp_aromair/routes/app_routes.dart';
 import 'package:get/get.dart';
 import 'package:dio/dio.dart';
@@ -21,7 +22,7 @@ class ReclamationDetailController extends GetxController {
 
   late final Dio _dio;
   late final ReclamationService _service;
-  late final IReclamationRepository _repo;
+  late final ReclamationRepository _repo;
 
   bool get canPlanifier => dto.value?.canPlanifier ?? false;
   String get titleDate => dto.value?.dateLabel ?? '-';
@@ -30,7 +31,6 @@ class ReclamationDetailController extends GetxController {
   void onInit() {
     super.onInit();
 
-    // DI
     _dio = Get.isRegistered<Dio>()
         ? Get.find<Dio>()
         : Get.put<Dio>(buildDio(), permanent: true);
@@ -40,13 +40,13 @@ class ReclamationDetailController extends GetxController {
     }
     _service = Get.find<ReclamationService>();
 
-    if (!Get.isRegistered<IReclamationRepository>()) {
-      Get.put<IReclamationRepository>(
+    if (!Get.isRegistered<ReclamationRepository>()) {
+      Get.put<ReclamationRepository>(
         ReclamationRepository(_service),
         permanent: true,
       );
     }
-    _repo = Get.find<IReclamationRepository>();
+    _repo = Get.find<ReclamationRepository>();
 
     fetch();
   }

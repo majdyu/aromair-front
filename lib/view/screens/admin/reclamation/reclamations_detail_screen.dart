@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:front_erp_aromair/theme/colors.dart';
 import 'package:get/get.dart';
 
-import 'package:front_erp_aromair/viewmodel/admin/reclamation_detail_controller.dart';
+import 'package:front_erp_aromair/viewmodel/admin/reclamation/reclamation_detail_controller.dart';
 import 'package:front_erp_aromair/data/models/reclamation_detail.dart';
 
 // ✅ Global widgets

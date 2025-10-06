@@ -1,23 +1,33 @@
+import 'package:front_erp_aromair/data/enums/statut_reclamation.dart';
 import 'package:intl/intl.dart';
-
-enum StatutReclamation { EN_COURS, TRAITE, FAUSSE_RECLAMATION, DEPASSE_48H }
 
 extension StatutReclamationX on StatutReclamation {
   String get apiValue {
     switch (this) {
-      case StatutReclamation.EN_COURS: return 'EN_COURS';
-      case StatutReclamation.TRAITE: return 'TRAITE';
-      case StatutReclamation.FAUSSE_RECLAMATION: return 'FAUSSE_RECLAMATION';
-      case StatutReclamation.DEPASSE_48H: return 'DEPASSE_48H';
+      case StatutReclamation.EN_COURS:
+        return 'EN_COURS';
+      case StatutReclamation.TRAITE:
+        return 'TRAITE';
+      case StatutReclamation.FAUSSE_RECLAMATION:
+        return 'FAUSSE_RECLAMATION';
+      case StatutReclamation.DEPASSE_48H:
+        return 'DEPASSE_48H';
+      case StatutReclamation.unknown:
+        return 'unknown';
     }
   }
+
   static StatutReclamation fromApi(String? raw) {
     switch ((raw ?? '').toUpperCase()) {
-      case 'TRAITE': return StatutReclamation.TRAITE;
-      case 'FAUSSE_RECLAMATION': return StatutReclamation.FAUSSE_RECLAMATION;
-      case 'DEPASSE_48H': return StatutReclamation.DEPASSE_48H;
+      case 'TRAITE':
+        return StatutReclamation.TRAITE;
+      case 'FAUSSE_RECLAMATION':
+        return StatutReclamation.FAUSSE_RECLAMATION;
+      case 'DEPASSE_48H':
+        return StatutReclamation.DEPASSE_48H;
       case 'EN_COURS':
-      default: return StatutReclamation.EN_COURS;
+      default:
+        return StatutReclamation.EN_COURS;
     }
   }
 }
@@ -73,14 +83,18 @@ class ReclamationDetail {
       if (v is String) {
         final s = v.trim();
         // d'abord dd/MM/yyyy
-        try { return DateFormat('dd/MM/yyyy').parse(s); } catch (_) {}
+        try {
+          return DateFormat('dd/MM/yyyy').parse(s);
+        } catch (_) {}
         // puis ISO
-        try { return DateTime.parse(s).toLocal(); } catch (_) {}
+        try {
+          return DateTime.parse(s).toLocal();
+        } catch (_) {}
       }
       if (v is List && v.isNotEmpty) {
-        final y  = v.length > 0 ? (v[0] as num?)?.toInt() ?? 0 : 0;
-        final m  = v.length > 1 ? (v[1] as num?)?.toInt() ?? 1 : 1;
-        final d  = v.length > 2 ? (v[2] as num?)?.toInt() ?? 1 : 1;
+        final y = v.length > 0 ? (v[0] as num?)?.toInt() ?? 0 : 0;
+        final m = v.length > 1 ? (v[1] as num?)?.toInt() ?? 1 : 1;
+        final d = v.length > 2 ? (v[2] as num?)?.toInt() ?? 1 : 1;
         final hh = v.length > 3 ? (v[3] as num?)?.toInt() ?? 0 : 0;
         final mm = v.length > 4 ? (v[4] as num?)?.toInt() ?? 0 : 0;
         final ss = v.length > 5 ? (v[5] as num?)?.toInt() ?? 0 : 0;
@@ -89,7 +103,8 @@ class ReclamationDetail {
       return DateTime.now();
     }
 
-    final rawStatut = (j['statutReclammation'] ?? j['statut'] ?? j['status'])?.toString();
+    final rawStatut = (j['statutReclammation'] ?? j['statut'] ?? j['status'])
+        ?.toString();
 
     // On lit "clientNom" si présent; sinon on tente "client" (string ou objet)
     String? _clientName() {
@@ -118,7 +133,6 @@ class ReclamationDetail {
       statut: StatutReclamationX.fromApi(rawStatut),
     );
   }
-
 
   Map<String, dynamic> toPatch({bool? etapes, StatutReclamation? statut}) {
     final m = <String, dynamic>{};

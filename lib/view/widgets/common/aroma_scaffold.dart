@@ -63,6 +63,7 @@ class AromaScaffold extends StatelessWidget {
           ),
         ),
       ),
+      floatingActionButton: floatingActionButton, // Add this line
     );
   }
 }
