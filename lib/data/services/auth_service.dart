@@ -7,19 +7,18 @@ class AuthService {
   final Dio _dio = buildDio();
 
   Future<AuthenticationResponse> login(AuthenticationRequest request) async {
-    print('[AuthService] baseUrl=${_dio.options.baseUrl}');
-    print("[AuthService] Sending login request: ${request.toJson()}");
     try {
       final response = await _dio.post(
-        "v1/auth/authenticate", 
+        "v1/auth/authenticate",
         data: request.toJson(),
       );
       print("[AuthService] Raw response: ${response.data}");
       return AuthenticationResponse.fromJson(response.data);
     } on DioException catch (e) {
-      print('[AuthService] DioError url=${e.requestOptions.uri} status=${e.response?.statusCode} data=${e.response?.data}');
+      print(
+        '[AuthService] DioError url=${e.requestOptions.uri} status=${e.response?.statusCode} data=${e.response?.data}',
+      );
       rethrow;
     }
   }
 }
-

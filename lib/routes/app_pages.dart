@@ -12,7 +12,7 @@ import 'package:front_erp_aromair/view/screens/admin/interventions/interventions
 import 'package:front_erp_aromair/view/screens/admin/rapports_screen.dart';
 import 'package:front_erp_aromair/view/screens/admin/reclamation/reclamation_screen.dart';
 import 'package:front_erp_aromair/view/screens/admin/reclamation/reclamations_detail_screen.dart';
-import 'package:front_erp_aromair/view/screens/admin/utilisateurs_screen.dart';
+import 'package:front_erp_aromair/view/screens/admin/user/utilisateurs_screen.dart';
 import 'package:get/get.dart';
 import '../view/screens/login_screen.dart';
 import '../view/screens/technicien/tech_dashboard.dart';
@@ -147,10 +147,7 @@ class AppPages {
       },
     ),
 
-    GetPage(
-      name: AppRoutes.adminUtilisateurs,
-      page: () => const UtilisateursScreen(),
-    ),
+    GetPage(name: AppRoutes.adminUtilisateurs, page: () => const UsersScreen()),
     GetPage(name: AppRoutes.adminRapports, page: () => const RapportsScreen()),
     // Technicien routes
     GetPage(name: AppRoutes.techHome, page: () => const TechDashboard()),

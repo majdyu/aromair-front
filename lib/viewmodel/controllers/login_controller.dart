@@ -32,8 +32,14 @@ class LoginController extends GetxController {
       print("[LoginController] Received token: ${response.token}");
       final payload = JwtHelper.decode(response.token);
       print("[LoginController] Decoded JWT payload: $payload");
-      await StorageHelper.saveUser(payload['id'], payload['role'], response.token);
-      print("[LoginController] Saved to SharedPreferences: id=${payload['id']}, role=${payload['role']}");
+      await StorageHelper.saveUser(
+        payload['id'],
+        payload['role'],
+        response.token,
+      );
+      print(
+        "[LoginController] Saved to SharedPreferences: id=${payload['id']}, role=${payload['role']}",
+      );
       _navigateByRole(payload['role']);
     } catch (e) {
       print("[LoginController] Login error: $e");
@@ -52,7 +58,9 @@ class LoginController extends GetxController {
       final expiration = payload['exp'] as int?;
       final currentTime = DateTime.now().millisecondsSinceEpoch ~/ 1000;
       if (expiration != null && currentTime >= expiration) {
-        print("[LoginController] Token expired: exp=$expiration, current=$currentTime");
+        print(
+          "[LoginController] Token expired: exp=$expiration, current=$currentTime",
+        );
         logout();
       } else {
         _navigateByRole(user['role']);
@@ -63,27 +71,26 @@ class LoginController extends GetxController {
   }
 
   void _navigateByRole(String role) {
-  print("[LoginController] Navigating to home for role: $role");
-  switch (role) {
-    case 'ADMIN':
-    case 'SUPER_ADMIN':
-      Get.offAllNamed(AppRoutes.adminOverview);
-      break;
-    case 'TECHNICIEN':
-      Get.offAllNamed(AppRoutes.techHome);
-      break;
-    case 'PRODUCTION':
-      Get.offAllNamed(AppRoutes.prodHome);
-      break;
-    case 'CLIENT':
-      Get.offAllNamed(AppRoutes.clientHome);
-      break;
-    default:
-      print("[LoginController] Unknown role: $role");
-      Get.snackbar("Error", "Unknown role: $role");
-      Get.offAllNamed(AppRoutes.login);
+    switch (role) {
+      case 'ADMIN':
+      case 'SUPER_ADMIN':
+        Get.offAllNamed(AppRoutes.adminOverview);
+        break;
+      case 'TECHNICIEN':
+        Get.offAllNamed(AppRoutes.techHome);
+        break;
+      case 'PRODUCTION':
+        Get.offAllNamed(AppRoutes.prodHome);
+        break;
+      case 'CLIENT':
+        Get.offAllNamed(AppRoutes.clientHome);
+        break;
+      default:
+        print("[LoginController] Unknown role: $role");
+        Get.snackbar("Error", "Unknown role: $role");
+        Get.offAllNamed(AppRoutes.login);
+    }
   }
-}
 
   void logout() {
     print("[LoginController] Logging out...");
