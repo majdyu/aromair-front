@@ -6,10 +6,12 @@ import 'package:front_erp_aromair/data/models/client.dart';
 import 'package:front_erp_aromair/data/repositories/admin/client_repository.dart';
 import 'package:front_erp_aromair/data/repositories/admin/reclamation_repository.dart';
 import 'package:front_erp_aromair/data/services/client_service.dart';
+import 'package:front_erp_aromair/view/widgets/common/snackbar.dart';
 import 'package:get/get.dart';
 
 import 'package:front_erp_aromair/data/models/reclamtion.dart';
 import 'package:front_erp_aromair/data/services/reclamation_service.dart';
+import 'package:front_erp_aromair/data/models/create_reclamation_request.dart';
 
 class ReclamationController extends GetxController {
   final IReclamationRepository _repo;
@@ -72,6 +74,10 @@ class ReclamationController extends GetxController {
       _rows.assignAll(list);
     } catch (e) {
       error.value = e.toString();
+      ElegantSnackbarService.showError(
+        title: 'Erreur',
+        message: 'Chargement des réclamations échoué: $e',
+      );
     } finally {
       isLoading.value = false;
       update();
@@ -82,19 +88,50 @@ class ReclamationController extends GetxController {
   final RxBool isLoadingClients = false.obs;
 
   Future<void> loadClientsForPicker({String query = ''}) async {
-    final repo = ClientRepository(ClientService());
-    // Adjust this line to your repo signature:
-    final results = await repo.getClients();
-    clientOptions.assignAll(results);
+    isLoadingClients.value = true;
+    try {
+      final repo = ClientRepository(ClientService());
+      final results = await repo
+          .getClients(); // adapter si signature différente
+      clientOptions.assignAll(results);
+    } catch (e) {
+      ElegantSnackbarService.showError(
+        title: 'Erreur',
+        message: 'Chargement des clients impossible: $e',
+      );
+    } finally {
+      isLoadingClients.value = false;
+    }
   }
 
-  // Add this method for creating reclamation
+  // Créer une réclamation
   Future<bool> createReclamation(String probleme, int clientId) async {
+    if (probleme.trim().isEmpty || clientId == 0) {
+      ElegantSnackbarService.showError(
+        title: 'Champs manquants',
+        message: 'Sélectionnez un client et décrivez le problème.',
+      );
+      return false;
+    }
+
     try {
-      // await _repo.createReclamation(probleme, clientId);
+      final body = CreateReclamationRequest(
+        clientId: clientId,
+        probleme: probleme.trim(),
+      );
+      await _repo.create(body);
+      ElegantSnackbarService.showSuccess(
+        message: 'Réclamation créée avec succès',
+      );
+      // Facultatif: refresh la liste
+      await fetch();
       return true;
     } catch (e) {
       error.value = e.toString();
+      ElegantSnackbarService.showError(
+        title: 'Erreur',
+        message: 'Création échouée: $e',
+      );
       return false;
     }
   }

@@ -1,5 +1,6 @@
 import 'package:front_erp_aromair/data/enums/statut_reclamation.dart';
 import 'package:front_erp_aromair/routes/app_routes.dart';
+import 'package:front_erp_aromair/view/widgets/common/snackbar.dart';
 import 'package:get/get.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -58,8 +59,10 @@ class ReclamationDetailController extends GetxController {
       dto.value = await _repo.getDetail(reclamationId);
     } on DioException catch (e) {
       error.value = 'HTTP ${e.response?.statusCode ?? '-'}: ${e.message}';
+      ElegantSnackbarService.showError(title: 'Erreur', message: error.value!);
     } catch (e) {
       error.value = e.toString();
+      ElegantSnackbarService.showError(title: 'Erreur', message: error.value!);
     } finally {
       isLoading.value = false;
     }
@@ -76,17 +79,15 @@ class ReclamationDetailController extends GetxController {
       await _repo.patchEtapes(reclamationId, value);
       dto.value = current.copyWith(etapes: value);
       if (value) {
-        Get.snackbar(
-          "Étape validée",
-          "Vous pouvez maintenant planifier une intervention.",
-          snackPosition: SnackPosition.BOTTOM,
+        ElegantSnackbarService.showSuccess(
+          message:
+              "Étape validée. Vous pouvez maintenant planifier une intervention.",
         );
       }
     } catch (e) {
-      Get.snackbar(
-        "Erreur",
-        "Impossible de mettre à jour l'étape: $e",
-        snackPosition: SnackPosition.BOTTOM,
+      ElegantSnackbarService.showError(
+        title: 'Erreur',
+        message: "Impossible de mettre à jour l'étape: $e",
       );
     } finally {
       isPatching.value = false;
@@ -104,16 +105,13 @@ class ReclamationDetailController extends GetxController {
     try {
       await _repo.patchStatut(reclamationId, statut);
       dto.value = current.copyWith(statut: statut);
-      Get.snackbar(
-        "Succès",
-        "Statut mis à jour: ${statut.name}",
-        snackPosition: SnackPosition.BOTTOM,
+      ElegantSnackbarService.showSuccess(
+        message: "Statut mis à jour: ${statut.name}",
       );
     } catch (e) {
-      Get.snackbar(
-        "Erreur",
-        "Impossible de changer le statut: $e",
-        snackPosition: SnackPosition.BOTTOM,
+      ElegantSnackbarService.showError(
+        title: 'Erreur',
+        message: "Impossible de changer le statut: $e",
       );
     } finally {
       isPatching.value = false;
@@ -131,21 +129,16 @@ class ReclamationDetailController extends GetxController {
     if (cur == null) return;
 
     if (!cur.canPlanifier) {
-      Get.snackbar(
-        "Indisponible",
-        "Validez d'abord l'appel téléphonique.",
-        snackPosition: SnackPosition.BOTTOM,
+      ElegantSnackbarService.showError(
+        title: 'Indisponible',
+        message: "Validez d'abord l'appel téléphonique.",
       );
       return;
     }
 
     final bool? ok = await showAddInterventionDialog(context);
     if (ok == true) {
-      Get.snackbar(
-        "Succès",
-        "Intervention ajoutée.",
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      ElegantSnackbarService.showSuccess(message: 'Intervention ajoutée.');
       // await fetch();
     }
   }

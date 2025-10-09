@@ -1,4 +1,5 @@
 import 'package:front_erp_aromair/core/net/dio_client.dart';
+import 'package:front_erp_aromair/view/widgets/common/snackbar.dart';
 import 'package:get/get.dart';
 import 'package:dio/dio.dart';
 import 'package:front_erp_aromair/data/models/clientdiffuseur_detail.dart';
@@ -18,9 +19,15 @@ class ClientDiffuseurDetailController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    final dio = Get.isRegistered<Dio>() ? Get.find<Dio>() : Get.put<Dio>(buildDio(), permanent: true);
+    final dio = Get.isRegistered<Dio>()
+        ? Get.find<Dio>()
+        : Get.put<Dio>(buildDio(), permanent: true);
+
     if (!Get.isRegistered<ClientDiffuseurService>()) {
-      Get.put<ClientDiffuseurService>(ClientDiffuseurService(dio), permanent: true);
+      Get.put<ClientDiffuseurService>(
+        ClientDiffuseurService(dio),
+        permanent: true,
+      );
     }
     if (!Get.isRegistered<IClientDiffuseurRepository>()) {
       Get.put<IClientDiffuseurRepository>(
@@ -38,9 +45,13 @@ class ClientDiffuseurDetailController extends GetxController {
     try {
       dto.value = await _repo.getDetail(clientDiffuseurId);
     } on DioException catch (e) {
-      error.value = 'HTTP ${e.response?.statusCode ?? '-'}: ${e.message}';
+      final msg = 'HTTP ${e.response?.statusCode ?? '-'}: ${e.message}';
+      error.value = msg;
+      ElegantSnackbarService.showError(title: 'Erreur', message: msg);
     } catch (e) {
-      error.value = e.toString();
+      final msg = e.toString();
+      error.value = msg;
+      ElegantSnackbarService.showError(title: 'Erreur', message: msg);
     } finally {
       isLoading.value = false;
     }

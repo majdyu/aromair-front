@@ -4,6 +4,7 @@ import 'package:front_erp_aromair/data/models/alert.dart';
 import 'package:front_erp_aromair/data/repositories/admin/alertes_repository.dart';
 import 'package:front_erp_aromair/data/services/alertes_service.dart';
 import 'package:front_erp_aromair/routes/app_routes.dart';
+import 'package:front_erp_aromair/view/widgets/common/snackbar.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
@@ -70,12 +71,7 @@ class AlertesController extends GetxController {
       final list = await _repo.list();
       _all.assignAll(list);
     } catch (e) {
-      Get.snackbar(
-        'Erreur',
-        '$e',
-        snackPosition: SnackPosition.BOTTOM,
-        duration: const Duration(seconds: 4),
-      );
+      ElegantSnackbarService.showError(title: 'Erreur', message: '$e');
     } finally {
       _loading.value = false;
       update();
@@ -146,19 +142,9 @@ class AlertesController extends GetxController {
       update();
       await _repo.toggle(a.id, decisionPrise: note);
       await fetch();
-      Get.snackbar(
-        'Succès',
-        'État mis à jour',
-        snackPosition: SnackPosition.BOTTOM,
-        duration: const Duration(seconds: 2),
-      );
+      ElegantSnackbarService.showSuccess(message: 'État mis à jour');
     } catch (e) {
-      Get.snackbar(
-        'Erreur',
-        '$e',
-        snackPosition: SnackPosition.BOTTOM,
-        duration: const Duration(seconds: 4),
-      );
+      ElegantSnackbarService.showError(title: 'Erreur', message: '$e');
     } finally {
       _loading.value = false;
       update();

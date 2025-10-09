@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:front_erp_aromair/view/widgets/common/snackbar.dart';
 import 'package:get/get.dart';
 import 'package:front_erp_aromair/data/models/intervention_item.dart';
 import 'package:front_erp_aromair/data/repositories/admin/interventions_repository.dart';
@@ -54,8 +55,11 @@ class InterventionsController extends GetxController {
       );
       items.assignAll(list);
     } catch (e) {
-      print("Error fetching interventions: $e");
       error.value = e.toString();
+      ElegantSnackbarService.showError(
+        title: 'Erreur',
+        message: 'Chargement des interventions échoué: $e',
+      );
     } finally {
       isLoading.value = false;
     }
@@ -138,14 +142,13 @@ class InterventionsController extends GetxController {
 
     try {
       await repository.delete(id);
-      Get.snackbar(
-        "Supprimé",
-        "Intervention supprimée",
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      ElegantSnackbarService.showSuccess(message: 'Intervention supprimée');
       fetch();
     } catch (e) {
-      Get.snackbar("Erreur", "Suppression échouée: $e");
+      ElegantSnackbarService.showError(
+        title: 'Erreur',
+        message: 'Suppression échouée: $e',
+      );
     }
   }
 

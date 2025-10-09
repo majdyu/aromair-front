@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart'; // for GlobalKey<FormState>
+import 'package:front_erp_aromair/view/widgets/common/snackbar.dart';
 import 'package:get/get.dart';
 import 'package:front_erp_aromair/core/net/dio_client.dart';
 import 'package:front_erp_aromair/data/services/user_service.dart';
@@ -51,7 +52,7 @@ class UpdateUserDialogController extends GetxController {
     // Extra role check (dropdown has no built-in validator in the view)
     final roleErr = validateRole(role);
     if (roleErr != null) {
-      Get.snackbar("Validation", roleErr);
+      ElegantSnackbarService.showError(title: 'Validation', message: roleErr);
       return false;
     }
 
@@ -75,7 +76,9 @@ class UpdateUserDialogController extends GetxController {
           role: role,
           password: password?.trim(),
         );
-        Get.snackbar("Succès", "Utilisateur créé avec succès");
+        ElegantSnackbarService.showSuccess(
+          message: 'Utilisateur créé avec succès',
+        );
       } else {
         await repo.updateUser(
           id: _userId!,
@@ -83,14 +86,16 @@ class UpdateUserDialogController extends GetxController {
           role: role,
           password: password?.trim(),
         );
-        Get.snackbar("Succès", "Utilisateur mis à jour avec succès");
+        ElegantSnackbarService.showSuccess(
+          message: 'Utilisateur mis à jour avec succès',
+        );
       }
 
       return true;
     } catch (e) {
       final msg = "Échec de l'opération: $e";
       error.value = msg;
-      Get.snackbar("Erreur", msg);
+      ElegantSnackbarService.showError(title: 'Erreur', message: msg);
       return false;
     } finally {
       isSaving.value = false;

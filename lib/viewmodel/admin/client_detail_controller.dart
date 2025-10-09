@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:front_erp_aromair/data/models/available_cab.dart';
+import 'package:front_erp_aromair/core/net/dio_client.dart';
 import 'package:front_erp_aromair/routes/app_routes.dart';
-import 'package:front_erp_aromair/utils/storage_helper.dart';
+import 'package:front_erp_aromair/view/widgets/common/snackbar.dart';
 import 'package:get/get.dart';
 import 'package:dio/dio.dart';
 
-import 'package:front_erp_aromair/core/net/dio_client.dart';
+import 'package:front_erp_aromair/data/models/available_cab.dart';
 import 'package:front_erp_aromair/data/models/client_detail.dart';
 import 'package:front_erp_aromair/data/services/clientdiffuseur_service.dart';
 import 'package:front_erp_aromair/data/repositories/admin/clientdiffuseur_repository.dart';
+import 'package:front_erp_aromair/utils/storage_helper.dart';
 
 // Pour ouvrir Google Maps (web/mobile)
 import 'package:url_launcher/url_launcher_string.dart';
@@ -25,7 +26,7 @@ class ClientDetailController extends GetxController {
   final role = ''.obs;
   bool get isSuperAdmin => role.value == 'SUPER_ADMIN';
 
-  // Edition (déjà utilisée par ton UI)
+  // Edition
   final isEditing = false.obs;
   final formKey = GlobalKey<FormState>();
 
@@ -112,8 +113,10 @@ class ClientDetailController extends GetxController {
       algo.value = data.algoPlan;
     } on DioException catch (e) {
       error.value = 'HTTP ${e.response?.statusCode ?? '-'}: ${e.message}';
+      ElegantSnackbarService.showError(title: 'Erreur', message: error.value!);
     } catch (e) {
       error.value = e.toString();
+      ElegantSnackbarService.showError(title: 'Erreur', message: error.value!);
     } finally {
       isLoading.value = false;
     }
@@ -157,19 +160,14 @@ class ClientDetailController extends GetxController {
       await _dio.patch('/clients/$clientId', data: body);
       isEditing.value = false;
       await fetch();
-      Get.snackbar(
-        'Succès',
-        'Client mis à jour',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      ElegantSnackbarService.showSuccess(message: 'Client mis à jour');
     } on DioException catch (e) {
-      Get.snackbar(
-        'Erreur',
-        'HTTP ${e.response?.statusCode ?? '-'}: ${e.message}',
-        snackPosition: SnackPosition.BOTTOM,
+      ElegantSnackbarService.showError(
+        title: 'Erreur',
+        message: 'HTTP ${e.response?.statusCode ?? '-'}: ${e.message}',
       );
     } catch (e) {
-      Get.snackbar('Erreur', e.toString(), snackPosition: SnackPosition.BOTTOM);
+      ElegantSnackbarService.showError(title: 'Erreur', message: e.toString());
     }
   }
 
@@ -198,10 +196,9 @@ class ClientDetailController extends GetxController {
       final list = await _clientDiffuseurRepo.getCabsDisponibles(q: q);
       cabsDisponibles.assignAll(list);
     } catch (e) {
-      Get.snackbar(
-        'Erreur',
-        'Chargement CAB disponibles: $e',
-        snackPosition: SnackPosition.BOTTOM,
+      ElegantSnackbarService.showError(
+        title: 'Erreur',
+        message: 'Chargement CAB disponibles: $e',
       );
     } finally {
       isLoadingCabs.value = false;
@@ -230,11 +227,7 @@ class ClientDetailController extends GetxController {
   Future<void> retirerClientDiffuseur({required String cab}) async {
     await _clientDiffuseurRepo.retirerClient(cab);
     await fetch();
-    Get.snackbar(
-      'Succès',
-      'Diffuseur retiré du client',
-      snackPosition: SnackPosition.BOTTOM,
-    );
+    ElegantSnackbarService.showSuccess(message: 'Diffuseur retiré du client');
   }
 
   @override

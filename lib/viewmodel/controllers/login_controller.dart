@@ -1,3 +1,4 @@
+import 'package:front_erp_aromair/view/widgets/common/snackbar.dart';
 import 'package:get/get.dart';
 import '../../data/models/authentication_request.dart';
 import '../../data/repositories/auth_repository.dart';
@@ -43,7 +44,10 @@ class LoginController extends GetxController {
       _navigateByRole(payload['role']);
     } catch (e) {
       print("[LoginController] Login error: $e");
-      Get.snackbar("Error", "Login failed");
+      ElegantSnackbarService.showError(
+        title: "Erreur",
+        message: "Échec de connexion",
+      );
     } finally {
       isLoading.value = false;
     }
@@ -87,7 +91,10 @@ class LoginController extends GetxController {
         break;
       default:
         print("[LoginController] Unknown role: $role");
-        Get.snackbar("Error", "Unknown role: $role");
+        ElegantSnackbarService.showError(
+          title: "Erreur",
+          message: "Rôle inconnu: $role",
+        );
         Get.offAllNamed(AppRoutes.login);
     }
   }

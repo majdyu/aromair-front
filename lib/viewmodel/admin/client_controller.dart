@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import 'package:front_erp_aromair/view/widgets/common/snackbar.dart';
 import 'package:get/get.dart';
 
 import 'package:front_erp_aromair/data/models/client.dart';
@@ -9,7 +10,7 @@ class ClientController extends GetxController {
   ClientController(this._repo);
 
   // ------------------------
-  // Existing state (keep/adapt to your project)
+  // State
   // ------------------------
   final RxBool isLoading = false.obs;
   final RxnString error = RxnString();
@@ -69,7 +70,11 @@ class ClientController extends GetxController {
 
       update();
     } catch (e) {
-      Get.snackbar('Erreur', 'Impossible de changer le statut du client.');
+      error.value = e.toString();
+      ElegantSnackbarService.showError(
+        title: 'Erreur',
+        message: 'Impossible de changer le statut du client.',
+      );
     } finally {
       _toggling.remove(client.id);
       update();
@@ -90,10 +95,13 @@ class ClientController extends GetxController {
         switch (type!.toUpperCase()) {
           case 'ACHAT':
             backendType = 'ACHAT';
+            break;
           case 'CONVENTION':
             backendType = 'CONVENTION';
+            break;
           case 'MAD':
             backendType = 'MAD';
+            break;
         }
       }
 
@@ -105,7 +113,12 @@ class ClientController extends GetxController {
 
       items.assignAll(data);
     } catch (e) {
-      error.value = e.toString();
+      final msg = e.toString();
+      error.value = msg;
+      ElegantSnackbarService.showError(
+        title: 'Erreur',
+        message: 'Chargement des clients échoué: $msg',
+      );
     } finally {
       isLoading.value = false;
       update();

@@ -1,4 +1,5 @@
 import 'package:front_erp_aromair/data/repositories/admin/user_repository.dart';
+import 'package:front_erp_aromair/view/widgets/common/snackbar.dart';
 import 'package:get/get.dart';
 
 import 'package:front_erp_aromair/core/net/dio_client.dart';
@@ -19,7 +20,12 @@ class UserController extends GetxController {
       final data = await _repo.list();
       users.assignAll(data);
     } catch (e) {
-      error.value = e.toString();
+      final msg = e.toString();
+      error.value = msg;
+      ElegantSnackbarService.showError(
+        title: 'Erreur',
+        message: 'Chargement des utilisateurs échoué: $msg',
+      );
     } finally {
       loading.value = false;
     }

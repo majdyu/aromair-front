@@ -3,6 +3,7 @@ import 'package:front_erp_aromair/data/models/create_reclamation_request.dart';
 import 'package:front_erp_aromair/data/repositories/admin/interventions_repository.dart';
 import 'package:front_erp_aromair/data/services/interventions_service.dart';
 import 'package:front_erp_aromair/data/services/reclamation_service.dart';
+import 'package:front_erp_aromair/view/widgets/common/snackbar.dart';
 import 'package:get/get.dart';
 
 import 'package:front_erp_aromair/data/repositories/admin/reclamation_repository.dart';
@@ -35,8 +36,7 @@ class AddReclamationController extends GetxController {
     ReclamationRepository? repo,
     InterventionsRepository? interRepo,
   }) {
-    intRepo = InterventionsRepository(InterventionsService());
-
+    intRepo = interRepo ?? InterventionsRepository(InterventionsService());
     _repo = repo ?? ReclamationRepository(ReclamationService(buildDio()));
   }
 
@@ -51,7 +51,10 @@ class AddReclamationController extends GetxController {
         selectedClientId.value = clientOptions.first.id;
       }
     } catch (e) {
-      Get.snackbar('Erreur', 'Impossible de charger la liste des clients');
+      ElegantSnackbarService.showError(
+        title: 'Erreur',
+        message: 'Impossible de charger la liste des clients',
+      );
     } finally {
       isBootstrapping.value = false;
     }
@@ -62,9 +65,9 @@ class AddReclamationController extends GetxController {
     final probleme = problemeCtrl.text.trim();
 
     if (clientId == 0 || probleme.isEmpty) {
-      Get.snackbar(
-        'Champs manquants',
-        'Sélectionnez un client et décrivez le problème.',
+      ElegantSnackbarService.showError(
+        title: 'Champs manquants',
+        message: 'Sélectionnez un client et décrivez le problème.',
       );
       return false;
     }
@@ -76,10 +79,15 @@ class AddReclamationController extends GetxController {
         probleme: probleme,
       );
       await _repo.create(body);
-      Get.snackbar('Succès', 'Réclamation créée avec succès');
+      ElegantSnackbarService.showSuccess(
+        message: 'Réclamation créée avec succès',
+      );
       return true;
     } catch (e) {
-      Get.snackbar('Erreur', 'Création échouée');
+      ElegantSnackbarService.showError(
+        title: 'Erreur',
+        message: 'Création échouée',
+      );
       return false;
     } finally {
       isSubmitting.value = false;
@@ -92,30 +100,3 @@ class AddReclamationController extends GetxController {
     super.onClose();
   }
 }
-
-// ==========================
-// INTEGRATION SNIPPET inside: lib/view/screens/admin/reclamations/reclamations_screen.dart
-// (showing only the relevant part where you trigger the dialog)
-// ==========================
-// ...
-// FloatingActionButton or an IconButton in AppBar actions
-//
-// actions: [
-//   IconButton(
-//     icon: const Icon(Icons.add),
-//     onPressed: () async {
-//       await showDialog(
-//         context: context,
-//         barrierDismissible: false,
-//         builder: (_) => AddReclamationDialog(
-//           onSuccess: () {
-//             // re-fetch list after creation
-//             final c = Get.find<ReclamationController>();
-//             c.fetch();
-//           },
-//         ),
-//       );
-//     },
-//   )
-// ],
-// ...

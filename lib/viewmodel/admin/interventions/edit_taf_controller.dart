@@ -1,3 +1,4 @@
+import 'package:front_erp_aromair/view/widgets/common/snackbar.dart';
 import 'package:get/get.dart';
 
 import 'package:front_erp_aromair/data/models/option_item.dart';
@@ -6,9 +7,6 @@ import 'package:front_erp_aromair/data/models/intervention_detail.dart';
 import 'package:front_erp_aromair/data/repositories/admin/interventions_repository.dart';
 import 'package:front_erp_aromair/data/services/interventions_service.dart';
 
-/// Controlleur d’édition des TAFs (popup "Travail à faire").
-/// Hypothèse: InterventionDetail contient `tafs: List<TafRow>`
-/// avec au minimum: `type` (String) et `clientDiffuseurId` (int?).
 class EditTafController extends GetxController {
   final InterventionDetail detail;
   EditTafController(this.detail);
@@ -20,7 +18,7 @@ class EditTafController extends GetxController {
   final error = RxnString();
 
   // lookups
-  final clients = <OptionItem>[].obs;       // affichage (client verrouillé)
+  final clients = <OptionItem>[].obs; // affichage (client verrouillé)
   final diffuseursAll = <OptionItem>[].obs; // toutes les options du client
 
   // sélection client (verrouillé mais nécessaire pour charger les CDs)
@@ -38,28 +36,27 @@ class EditTafController extends GetxController {
   ];
 
   String pretty(String t) => switch (t) {
-        'CONTROLE' => 'Contrôle',
-        'DEMO' => 'Démo',
-        'LIVRAISON' => 'Livraison',
-        'RECLAMATION' => 'Réclamation',
-        'REPARATION' => 'Réparation',
-        'INSTALLATION' => 'Installation',
-        'CHANGEMENT_EMPLACEMENT' => "Changement d’emplacement",
-        _ => t,
-      };
+    'CONTROLE' => 'Contrôle',
+    'DEMO' => 'Démo',
+    'LIVRAISON' => 'Livraison',
+    'RECLAMATION' => 'Réclamation',
+    'REPARATION' => 'Réparation',
+    'INSTALLATION' => 'Installation',
+    'CHANGEMENT_EMPLACEMENT' => "Changement d’emplacement",
+    _ => t,
+  };
 
   /// Etat d’activation par type
-  late final Map<String, RxBool> enabled =
-      {for (final t in types) t: false.obs};
+  late final Map<String, RxBool> enabled = {
+    for (final t in types) t: false.obs,
+  };
 
-  /// Lignes par type: chaque ligne est un RxnInt = id de clientDiffuseur
-   /// Map réactive : chaque type possède une RxList de lignes
-  late final Map<String, RxList<RxnInt>> linesByType =
-      { for (final t in types) t: <RxnInt>[].obs };
+  late final Map<String, RxList<RxnInt>> linesByType = {
+    for (final t in types) t: <RxnInt>[].obs,
+  };
 
-  /// Petit “tick” pour forcer un rebuild global quand nécessaire
   final uiTick = 0.obs;
-  void _mark() => uiTick.value++;  // appelle ceci après add/remove/toggle/onChanged
+  void _mark() => uiTick.value++;
 
   @override
   void onInit() {
@@ -97,17 +94,23 @@ class EditTafController extends GetxController {
 
   // idem mais avec .obs déjà affecté dans onInit()
   Future<void> _loadLookups() async {
-    isLoadingLookups.value = true; error.value = null;
+    isLoadingLookups.value = true;
+    error.value = null;
     try {
       final cs = await repo.clientsMin();
       clients.assignAll(cs);
 
       if (selectedClientId.value != null) {
         diffuseursAll.assignAll(
-            await repo.diffuseursByClientMin(selectedClientId.value!));
+          await repo.diffuseursByClientMin(selectedClientId.value!),
+        );
       }
     } catch (e) {
       error.value = e.toString();
+      ElegantSnackbarService.showError(
+        title: 'Erreur',
+        message: 'Chargement des données: $e',
+      );
     } finally {
       isLoadingLookups.value = false;
       _mark();
@@ -168,15 +171,23 @@ class EditTafController extends GetxController {
 
   void onSelectCd(String type, int index, int? v) {
     linesByType[type]![index].value = v;
-    _mark(); // important : les autres dropdowns se réactualisent (sans doublon)
+    _mark();
   }
 
   Future<bool> submit() async {
     if (selectedClientId.value == null) {
-      Get.snackbar("Client", "Client introuvable."); return false;
+      ElegantSnackbarService.showError(
+        title: 'Client',
+        message: 'Client introuvable.',
+      );
+      return false;
     }
     if (diffuseursAll.isEmpty) {
-      Get.snackbar("Client", "Aucun diffuseur pour ce client."); return false;
+      ElegantSnackbarService.showError(
+        title: 'Client',
+        message: 'Aucun diffuseur pour ce client.',
+      );
+      return false;
     }
 
     final tafs = <TafCreate>[];
@@ -187,7 +198,11 @@ class EditTafController extends GetxController {
       final ids = rows.map((r) => r.value).whereType<int>().toList();
 
       if (ids.isEmpty) {
-        Get.snackbar(pretty(t), "Sélectionne au moins un diffuseur."); return false;
+        ElegantSnackbarService.showError(
+          title: pretty(t),
+          message: 'Sélectionne au moins un diffuseur.',
+        );
+        return false;
       }
       for (final id in ids) {
         tafs.add(TafCreate(typeInterventions: t, clientDiffuseur: IdRef(id)));
@@ -196,9 +211,15 @@ class EditTafController extends GetxController {
 
     try {
       await repo.updateTafs(detail.id, tafs);
+      ElegantSnackbarService.showSuccess(
+        message: 'Travaux à faire mis à jour avec succès',
+      );
       return true;
     } catch (e) {
-      Get.snackbar("Erreur", "Mise à jour échouée: $e");
+      ElegantSnackbarService.showError(
+        title: 'Erreur',
+        message: 'Mise à jour échouée: $e',
+      );
       return false;
     }
   }

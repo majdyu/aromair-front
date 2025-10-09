@@ -1,3 +1,4 @@
+import 'package:front_erp_aromair/view/widgets/common/snackbar.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:front_erp_aromair/data/models/option_item.dart';
@@ -36,25 +37,24 @@ class AddInterventionController extends GetxController {
   ];
 
   String pretty(String t) => switch (t) {
-    'CONTROLE'                => 'Contrôle',
-    'DEMO'                    => 'Démo',
-    'LIVRAISON'               => 'Livraison',
-    'RECLAMATION'            => 'Réclamation',
-    'REPARATION'              => 'Réparation',
-    'INSTALLATION'            => 'Installation',
-    'CHANGEMENT_EMPLACEMENT'  => 'Changement d’emplacement',
-    _                         => t,
+    'CONTROLE' => 'Contrôle',
+    'DEMO' => 'Démo',
+    'LIVRAISON' => 'Livraison',
+    'RECLAMATION' => 'Réclamation',
+    'REPARATION' => 'Réparation',
+    'INSTALLATION' => 'Installation',
+    'CHANGEMENT_EMPLACEMENT' => 'Changement d’emplacement',
+    _ => t,
   };
 
-
   // état par type
-  late final Map<String, RxBool> enabled =
-      {for (final t in types) t: (t == 'CONTROLE').obs}; // CONTROLE coché par défaut
+  late final Map<String, RxBool> enabled = {
+    for (final t in types) t: (t == 'CONTROLE').obs,
+  }; // CONTROLE coché par défaut
 
   // RxMap de RxList => chaque add/remove déclenche un rebuild
   late final RxMap<String, RxList<RxnInt>> linesByType =
-    <String, RxList<RxnInt>>{}.obs;
-
+      <String, RxList<RxnInt>>{}.obs;
 
   void _ensureOneLineIfEnabled(String type) {
     final list = linesByType[type]!;
@@ -105,7 +105,6 @@ class AddInterventionController extends GetxController {
     if (list.length > 1) list.removeAt(idx); // RxList => rebuild
   }
 
-
   @override
   void onInit() {
     super.onInit();
@@ -115,7 +114,6 @@ class AddInterventionController extends GetxController {
     }
     _loadLookups();
   }
-
 
   Future<void> _loadLookups() async {
     isLoadingLookups.value = true;
@@ -137,6 +135,10 @@ class AddInterventionController extends GetxController {
       }
     } catch (e) {
       error.value = e.toString();
+      ElegantSnackbarService.showError(
+        title: 'Erreur',
+        message: 'Chargement des listes: $e',
+      );
     } finally {
       isLoadingLookups.value = false;
     }
@@ -162,21 +164,25 @@ class AddInterventionController extends GetxController {
           if ((enabled[t]?.value ?? false) && list.isEmpty) list.add(RxnInt());
         }
       } catch (e) {
-        Get.snackbar("Erreur", "Chargement diffuseurs: $e");
+        ElegantSnackbarService.showError(
+          title: 'Erreur',
+          message: 'Chargement diffuseurs: $e',
+        );
       }
     }
   }
 
-
   // options autorisées pour une ligne d’un type (sans doublon dans le même type)
   List<OptionItem> optionsFor(String type, int index) {
     final keep = linesByType[type]![index].value;
-    final usedEverywhere = _selectedIdsGlobal(exceptType: type, exceptIndex: index);
+    final usedEverywhere = _selectedIdsGlobal(
+      exceptType: type,
+      exceptIndex: index,
+    );
     return diffuseursAll
         .where((o) => o.id == keep || !usedEverywhere.contains(o.id))
         .toList();
   }
-
 
   void toggleType(String type, bool? v) {
     final newVal = v ?? false;
@@ -189,7 +195,6 @@ class AddInterventionController extends GetxController {
       }
     }
   }
-
 
   Future<void> pickDate(BuildContext context) async {
     final d = await showDatePicker(
@@ -208,11 +213,17 @@ class AddInterventionController extends GetxController {
 
   Future<bool> submit() async {
     if (selectedClientId.value == null || selectedUserId.value == null) {
-      Get.snackbar("Champs manquants", "Client et Technicien sont obligatoires");
+      ElegantSnackbarService.showError(
+        title: 'Champs manquants',
+        message: 'Client et Technicien sont obligatoires',
+      );
       return false;
     }
     if (diffuseursAll.isEmpty) {
-      Get.snackbar("Client", "Aucun ClientDiffuseur pour ce client.");
+      ElegantSnackbarService.showError(
+        title: 'Client',
+        message: 'Aucun ClientDiffuseur pour ce client.',
+      );
       return false;
     }
 
@@ -226,21 +237,26 @@ class AddInterventionController extends GetxController {
       final ids = rows.map((r) => r.value).whereType<int>().toList();
 
       if (ids.isEmpty) {
-        Get.snackbar(pretty(t), "Sélectionne au moins un diffuseur.");
+        ElegantSnackbarService.showError(
+          title: pretty(t),
+          message: 'Sélectionne au moins un diffuseur.',
+        );
         return false;
       }
 
       for (final id in ids) {
         if (usedGlobal.contains(id)) {
-          Get.snackbar("Conflit",
-              "Le diffuseur $id est déjà sélectionné dans un autre type.");
+          ElegantSnackbarService.showError(
+            title: 'Conflit',
+            message:
+                'Le diffuseur $id est déjà sélectionné dans un autre type.',
+          );
           return false;
         }
         usedGlobal.add(id);
         tafs.add(TafCreate(typeInterventions: t, clientDiffuseur: IdRef(id)));
       }
     }
-
 
     final body = CreateInterventionRequest(
       date: date.value,
@@ -253,9 +269,15 @@ class AddInterventionController extends GetxController {
 
     try {
       await repo.create(body);
+      ElegantSnackbarService.showSuccess(
+        message: 'Intervention créée avec succès',
+      );
       return true;
     } catch (e) {
-      Get.snackbar("Erreur", "Création échouée: $e");
+      ElegantSnackbarService.showError(
+        title: 'Erreur',
+        message: 'Création échouée: $e',
+      );
       return false;
     }
   }

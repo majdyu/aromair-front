@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:front_erp_aromair/core/net/dio_client.dart';
 import 'package:front_erp_aromair/routes/app_routes.dart';
+import 'package:front_erp_aromair/view/widgets/common/snackbar.dart';
 import 'package:get/get.dart';
 
 import 'package:front_erp_aromair/data/models/alerte_detail.dart';
@@ -39,6 +40,10 @@ class AlerteDetailController extends GetxController {
       decisionCtrl.text = d.decisionPrise ?? '';
     } catch (e) {
       error.value = e.toString();
+      ElegantSnackbarService.showError(
+        title: 'Erreur',
+        message: 'Chargement de l’alerte échoué: $e',
+      );
     } finally {
       isLoading.value = false;
     }
@@ -64,9 +69,14 @@ class AlerteDetailController extends GetxController {
       final decision = decisionCtrl.text.trim();
       await repo.toggle(id, decisionPrise: decision.isEmpty ? null : decision);
       await fetch(); // refresh après PATCH
-      Get.snackbar('Succès', 'État de résolution basculé.');
+      ElegantSnackbarService.showSuccess(
+        message: 'État de résolution basculé.',
+      );
     } catch (e) {
-      Get.snackbar('Erreur', 'Échec du basculement: $e');
+      ElegantSnackbarService.showError(
+        title: 'Erreur',
+        message: 'Échec du basculement: $e',
+      );
     } finally {
       isSaving.value = false;
     }
@@ -84,7 +94,7 @@ class AlerteDetailController extends GetxController {
     }
 
     final q = (current.client).trim();
-    Get.toNamed('/admin-clients', arguments: {'q': q});
+    Get.toNamed(AppRoutes.adminClients, arguments: {'q': q});
   }
 
   @override

@@ -5,7 +5,7 @@ import 'package:front_erp_aromair/view/screens/admin/bouteille_detail_screen.dar
 import 'package:front_erp_aromair/view/screens/admin/client_detail_screen.dart';
 import 'package:front_erp_aromair/view/screens/admin/clientdiffuseur_detail_screen.dart';
 import 'package:front_erp_aromair/view/screens/admin/clients_screen.dart';
-import 'package:front_erp_aromair/view/screens/admin/diffuseurs_screen.dart';
+import 'package:front_erp_aromair/view/screens/admin/diffuseur/diffuseurs_screen.dart';
 import 'package:front_erp_aromair/view/screens/admin/interventions/etat_clientdiffuseur_screen.dart';
 import 'package:front_erp_aromair/view/screens/admin/interventions/intervention_detail_screen.dart';
 import 'package:front_erp_aromair/view/screens/admin/interventions/interventions_screen.dart';

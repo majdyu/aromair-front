@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:front_erp_aromair/data/models/equipe.dart';
 import 'package:front_erp_aromair/data/repositories/admin/equipe_repository.dart';
+import 'package:front_erp_aromair/view/widgets/common/snackbar.dart';
 import 'package:get/get.dart';
 import 'package:front_erp_aromair/data/models/intervention_detail.dart';
 import 'package:front_erp_aromair/data/repositories/admin/interventions_repository.dart';
@@ -53,6 +54,10 @@ class InterventionDetailController extends GetxController {
       isEditingPay.value = false;
     } catch (e) {
       error.value = e.toString();
+      ElegantSnackbarService.showError(
+        title: 'Erreur',
+        message: 'Chargement des détails échoué: $e',
+      );
     } finally {
       isLoading.value = false;
     }
@@ -70,9 +75,12 @@ class InterventionDetailController extends GetxController {
         remarque: text.isEmpty ? null : text,
       );
       await fetch();
-      Get.snackbar('Succès', 'Remarque enregistrée.');
+      ElegantSnackbarService.showSuccess(message: 'Remarque enregistrée.');
     } catch (e) {
-      Get.snackbar('Erreur', 'Échec de mise à jour: $e');
+      ElegantSnackbarService.showError(
+        title: 'Erreur',
+        message: 'Échec de mise à jour: $e',
+      );
     } finally {
       isSavingRemark.value = false;
     }
@@ -85,7 +93,10 @@ class InterventionDetailController extends GetxController {
     final raw = payCtrl.text.trim().replaceAll(',', '.');
     final value = double.tryParse(raw);
     if (value == null) {
-      Get.snackbar("Montant invalide", "Saisis un nombre (ex: 12.500)");
+      ElegantSnackbarService.showError(
+        title: 'Montant invalide',
+        message: 'Saisis un nombre (ex: 12.500)',
+      );
       return;
     }
 
@@ -98,8 +109,12 @@ class InterventionDetailController extends GetxController {
         detail.value = d.copyWith(payement: value);
       }
       isEditingPay.value = false;
+      ElegantSnackbarService.showSuccess(message: 'Paiement mis à jour.');
     } catch (e) {
-      Get.snackbar("Erreur", "Mise à jour du paiement échouée: $e");
+      ElegantSnackbarService.showError(
+        title: 'Erreur',
+        message: 'Mise à jour du paiement échouée: $e',
+      );
     } finally {
       isSavingPay.value = false;
     }
@@ -116,8 +131,6 @@ class InterventionDetailController extends GetxController {
   final equipes = <Equipe>[].obs;
   final selectedEquipe = Rxn<Equipe>();
   final _equipesRepo = EquipesRepository();
-  // State
-  // ======================= BASIC INFO INLINE EDIT =======================
 
   // State
   final isEditingBasicInfo = false.obs;
@@ -175,7 +188,10 @@ class InterventionDetailController extends GetxController {
         }
       }
     } catch (e) {
-      Get.snackbar('Info', 'Impossible de charger les équipes : $e');
+      ElegantSnackbarService.showError(
+        title: 'Info',
+        message: 'Impossible de charger les équipes : $e',
+      );
     }
   }
 
@@ -212,21 +228,12 @@ class InterventionDetailController extends GetxController {
           'dd/MM/yyyy',
         ).parseStrict(dateBasicCtrl.text.trim());
       } catch (_) {
-        Get.snackbar(
-          'Champ invalide',
-          'La date est invalide (format: jj/MM/aaaa)',
+        ElegantSnackbarService.showError(
+          title: 'Champ invalide',
+          message: 'La date est invalide (format: jj/MM/aaaa)',
         );
         return;
       }
-
-      // final body = {
-      //   "date": DateFormat(
-      //     "yyyy-MM-dd'T'HH:mm:ss",
-      //   ).format(DateTime(newDate.year, newDate.month, newDate.day)),
-      //   "equipeNom": equipeNomToSend,
-      //   "techniciens": techs,
-      //   "estPayementObligatoire": payObligatoire.value,
-      // };
 
       await repo.updateMeta(
         detail.value!.id,
@@ -237,9 +244,12 @@ class InterventionDetailController extends GetxController {
       await fetch();
       _hydrateBasicForm(); // keep form in sync
       isEditingBasicInfo.value = false;
-      Get.snackbar('Succès', 'Informations mises à jour');
+      ElegantSnackbarService.showSuccess(message: 'Informations mises à jour.');
     } catch (e) {
-      Get.snackbar('Erreur', 'Impossible de mettre à jour: $e');
+      ElegantSnackbarService.showError(
+        title: 'Erreur',
+        message: 'Impossible de mettre à jour: $e',
+      );
     } finally {
       isSavingBasicInfo.value = false;
     }
