@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:front_erp_aromair/core/net/dio_client.dart';
 import 'package:front_erp_aromair/data/repositories/admin/reclamation_repository.dart';
+import 'package:front_erp_aromair/routes/app_routes.dart';
 import 'package:front_erp_aromair/view/screens/admin/reclamation/add_reclamation_dialog.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -383,8 +384,10 @@ class ReclamationsScreen extends StatelessWidget {
                                     return _ReclamationListTile(
                                       row: r,
                                       onTap: () {
-                                        // TODO: navigate to detail if route exists
-                                        // Get.toNamed(AppRoutes.detailReclamation, arguments: {'id': r.id});
+                                        Get.toNamed(
+                                          AppRoutes.reclamationDetail,
+                                          arguments: {'id': r.id},
+                                        );
                                       },
                                     );
                                   },

@@ -17,7 +17,12 @@ class LoginController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    checkLoginStatus();
+  }
+
+  @override
+  void onReady() {
+    super.onReady();
+    Future.microtask(checkLoginStatus);
   }
 
   Future<void> login() async {

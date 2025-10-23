@@ -96,15 +96,15 @@ class _AddInterventionForm extends StatelessWidget {
                             const SizedBox(height: 16),
 
                             // Technician field
-                            _buildSectionTitle("Technicien"),
+                            _buildSectionTitle("Equipe"),
                             const SizedBox(height: 8),
                             _buildDropdown(
                               hint: "Sélectionner un technicien",
                               value: safeValue(
-                                c.techniciens,
+                                c.equipes,
                                 c.selectedUserId.value,
                               ),
-                              items: c.techniciens,
+                              items: c.equipes,
                               onChanged: (v) => c.selectedUserId.value = v,
                             ),
                             const SizedBox(height: 16),

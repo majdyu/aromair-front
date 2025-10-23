@@ -32,7 +32,6 @@ String userRoleToString(UserRole r) {
   }
 }
 
-/// Minimal user model matching the given JSON
 class UserItem {
   final int id;
   final String nom;

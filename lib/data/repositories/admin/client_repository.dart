@@ -7,6 +7,7 @@ abstract class IClientRepository {
   Future<ClientDetail> getClientDetail(int clientId);
   Future<void> updateClient(int id, Map<String, dynamic> body);
   Future<List<ClientRow>> getClients({String? q, String? type});
+  Future<void> createClient(Map<String, dynamic> body);
 }
 
 class ClientRepository implements IClientRepository {
@@ -33,4 +34,6 @@ class ClientRepository implements IClientRepository {
   }
 
   Future<bool> toggleActive(int id) => _service.toggleActive(id);
+  Future<void> createClient(Map<String, dynamic> body) =>
+      _service.createClient(body);
 }

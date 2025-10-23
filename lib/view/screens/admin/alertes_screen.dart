@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:front_erp_aromair/core/notification/notification_service.dart';
 import 'package:front_erp_aromair/data/models/alert.dart';
 import 'package:front_erp_aromair/viewmodel/admin/alert_controller.dart';
 import 'package:get/get.dart';
@@ -18,6 +19,13 @@ class AlertesScreen extends StatelessWidget {
       init: AlertesController(),
       builder: (c) {
         return AromaScaffold(
+          floatingActionButton: FloatingActionButton(
+            onPressed: () => NotificationService.I.showAlert(
+              title: 'Alert created',
+              body: 'Local test notification',
+            ),
+            child: const Icon(Icons.notifications),
+          ),
           title: "Alertes",
           onRefresh: c.fetch,
           body: Center(

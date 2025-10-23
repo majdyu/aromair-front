@@ -1,4 +1,3 @@
-// lib/data/services/bouteilles_service.dart
 import 'package:dio/dio.dart';
 import 'package:front_erp_aromair/utils/storage_helper.dart';
 
@@ -10,8 +9,11 @@ class BouteillesService {
     final token = (await StorageHelper.getUser())?['token'];
     final resp = await _dio.get(
       'bouteilles/$id',
-      options: Options(headers: { if (token != null) 'Authorization': 'Bearer $token' }),
+      options: Options(
+        headers: {if (token != null) 'Authorization': 'Bearer $token'},
+      ),
     );
+
     return Map<String, dynamic>.from(resp.data);
   }
 }

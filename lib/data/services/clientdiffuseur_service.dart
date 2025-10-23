@@ -30,7 +30,7 @@ class ClientDiffuseurService {
     }
   }
 
-// Affectation modification : /client-diffuseurs/{cab}
+  // Affectation modification : /client-diffuseurs/{cab}
   Future<void> retirerClient({required String cab}) async {
     final res = await _dio.put('client-diffuseurs/$cab/retirer-client');
     if (res.statusCode != 200) {

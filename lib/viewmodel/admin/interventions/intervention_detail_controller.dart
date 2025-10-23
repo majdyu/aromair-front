@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:front_erp_aromair/core/net/dio_client.dart';
 import 'package:front_erp_aromair/data/models/equipe.dart';
 import 'package:front_erp_aromair/data/repositories/admin/equipe_repository.dart';
+import 'package:front_erp_aromair/data/services/equipe_service.dart';
 import 'package:front_erp_aromair/view/widgets/common/snackbar.dart';
 import 'package:get/get.dart';
 import 'package:front_erp_aromair/data/models/intervention_detail.dart';
@@ -130,7 +132,7 @@ class InterventionDetailController extends GetxController {
   // ======================= BASIC INFO INLINE EDIT =======================
   final equipes = <Equipe>[].obs;
   final selectedEquipe = Rxn<Equipe>();
-  final _equipesRepo = EquipesRepository();
+  final _equipesRepo = EquipesRepository(EquipesService(buildDio()));
 
   // State
   final isEditingBasicInfo = false.obs;
@@ -168,7 +170,7 @@ class InterventionDetailController extends GetxController {
   // Load équipes from backend and preselect current if names match
   Future<void> loadEquipes() async {
     try {
-      final list = await _equipesRepo.fetchEquipes();
+      final list = await _equipesRepo.list();
       equipes.assignAll(list);
 
       // try to preselect by name

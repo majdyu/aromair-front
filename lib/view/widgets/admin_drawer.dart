@@ -1,40 +1,133 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../utils/storage_helper.dart';
-import '../../../routes/app_routes.dart';
+
+import 'package:front_erp_aromair/utils/storage_helper.dart';
+import 'package:front_erp_aromair/utils/jwt_helper.dart';
+import 'package:front_erp_aromair/routes/app_routes.dart';
 
 class AdminDrawer extends StatelessWidget {
   const AdminDrawer({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final topSafe = MediaQuery.of(context).padding.top;
+    final w = size.width;
+    final h = size.height;
+
+    final bool isTablet = w >= 600 && w < 1024;
+    final bool isMobile = w < 600;
+
+    // Drawer width as a percentage of screen width (with clamps)
+    final double drawerWidth = _clamp(
+      isMobile ? w * 0.88 : (isTablet ? w * 0.30 : w * 0.22),
+      260,
+      360,
+    );
+
+    // === Percent-based sizing ===
+    final double pad = _clamp(drawerWidth * 0.07, 16, 28); // header padding
+    final double gapNameRole = _clamp(
+      h * 0.006,
+      3,
+      8,
+    ); // gap between name & role
+    final double gapAvatar = _clamp(
+      h * 0.012,
+      6,
+      14,
+    ); // gap between avatar & name
+    final double avatarPad = _clamp(
+      drawerWidth * 0.045,
+      12,
+      18,
+    ); // inner pad of avatar circle
+
+    final double headerIcon = _clamp(
+      drawerWidth * 0.11,
+      32,
+      44,
+    ); // big avatar icon size
+    final double itemIcon = _clamp(
+      drawerWidth * 0.07,
+      20,
+      26,
+    ); // menu icon size
+    final double itemVPad = _clamp(h * 0.016, 10, 18); // menu vertical padding
+    final double itemText = _clamp(
+      drawerWidth * 0.045,
+      14,
+      16,
+    ); // menu text size
+    final double titleSize = _clamp(
+      drawerWidth * 0.065,
+      18,
+      24,
+    ); // name font size
+    final double roleSize = _clamp(
+      drawerWidth * 0.040,
+      12,
+      15,
+    ); // role font size
+    final double footerBtnVPad = _clamp(
+      h * 0.018,
+      12,
+      18,
+    ); // footer button padding
+
+    // Header minimum height as a percentage of screen height (so it can grow if needed)
+    final double headerMinHeight =
+        (isMobile ? h * 0.22 : h * 0.20) + topSafe + 2; // +2px safety
+    final double headerTarget = (isMobile
+        ? h * 0.24
+        : (isTablet ? h * 0.22 : h * 0.22));
+    final double headerHeightMin = math.max(headerTarget, headerMinHeight);
+
     return Drawer(
+      width: drawerWidth,
       child: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF0A1E40), // Dark navy
-              Color(0xFF152A51), // Medium navy
-              Color(0xFF1E3A8A), // Royal blue
-            ],
+            colors: [Color(0xFF0A1E40), Color(0xFF152A51), Color(0xFF1E3A8A)],
           ),
         ),
         child: Column(
           children: [
-            _buildHeader(),
-            Expanded(child: _buildMenuItems()),
-            _buildFooter(),
+            _buildHeader(
+              minHeight: headerHeightMin,
+              pad: pad,
+              avatarPad: avatarPad,
+              headerIcon: headerIcon,
+              titleSize: titleSize,
+              roleSize: roleSize,
+              gapAvatar: gapAvatar,
+              gapNameRole: gapNameRole,
+            ),
+            Expanded(child: _buildMenuItems(itemIcon, itemVPad, itemText)),
+            _buildFooter(footerBtnVPad),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildHeader() {
+  // ---------------- Header ----------------
+  Widget _buildHeader({
+    required double minHeight,
+    required double pad,
+    required double avatarPad,
+    required double headerIcon,
+    required double titleSize,
+    required double roleSize,
+    required double gapAvatar,
+    required double gapNameRole,
+  }) {
     return Container(
-      height: 200,
+      // let content define the final height, we only enforce a min
+      constraints: BoxConstraints(minHeight: minHeight),
       width: double.infinity,
       decoration: const BoxDecoration(
         gradient: LinearGradient(
@@ -48,14 +141,16 @@ class AdminDrawer extends StatelessWidget {
         ),
       ),
       child: SafeArea(
+        bottom: false,
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.all(pad),
           child: Column(
+            mainAxisSize:
+                MainAxisSize.min, // shrink to fit; minHeight handles the rest
             crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.end,
             children: [
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(avatarPad),
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.1),
                   shape: BoxShape.circle,
@@ -64,30 +159,74 @@ class AdminDrawer extends StatelessWidget {
                     width: 2,
                   ),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.admin_panel_settings,
-                  size: 40,
+                  size: headerIcon,
                   color: Colors.white,
                 ),
               ),
-              const SizedBox(height: 16),
-              const Text(
-                "Administrateur",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 22,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.8,
-                ),
+              SizedBox(height: gapAvatar),
+
+              // NAME (from storage, fallback to JWT "sub")
+              FutureBuilder<Map<String, dynamic>?>(
+                future: StorageHelper.getUser(),
+                builder: (context, snap) {
+                  final u = snap.data;
+                  String displayName = (u?['name'] ?? '').toString().trim();
+                  if (displayName.isEmpty) {
+                    final token = (u?['token'] ?? '').toString();
+                    if (token.isNotEmpty) {
+                      final sub = JwtHelper.sub(token) ?? '';
+                      if (sub.isNotEmpty) {
+                        displayName = sub;
+                        Future.microtask(() => StorageHelper.saveUserName(sub));
+                      }
+                    }
+                  }
+                  displayName = displayName.isEmpty
+                      ? 'Utilisateur'
+                      : displayName;
+                  return Text(
+                    displayName.toUpperCase(),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: titleSize,
+                      height: 1.25,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.8,
+                    ),
+                  );
+                },
               ),
-              const SizedBox(height: 4),
-              Text(
-                "Panel d'administration",
-                style: TextStyle(
-                  color: Colors.white.withOpacity(0.8),
-                  fontSize: 14,
-                  fontWeight: FontWeight.w300,
-                ),
+
+              SizedBox(height: gapNameRole),
+
+              // ROLE (from storage, fallback to JWT "role")
+              FutureBuilder<Map<String, dynamic>?>(
+                future: StorageHelper.getUser(),
+                builder: (context, snap) {
+                  final u = snap.data;
+                  String role = (u?['role'] ?? '').toString();
+                  if (role.isEmpty) {
+                    final token = (u?['token'] ?? '').toString();
+                    if (token.isNotEmpty) role = JwtHelper.role(token) ?? '';
+                  }
+                  final label = _labelRole(role);
+                  return Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.85),
+                      fontSize: roleSize,
+                      height: 1.25,
+                      fontWeight: FontWeight.w300,
+                      letterSpacing: 0.2,
+                    ),
+                  );
+                },
               ),
             ],
           ),
@@ -96,7 +235,8 @@ class AdminDrawer extends StatelessWidget {
     );
   }
 
-  Widget _buildMenuItems() {
+  // ---------------- Menu ----------------
+  Widget _buildMenuItems(double iconSize, double vPad, double textSize) {
     final items = [
       {
         'icon': Icons.dashboard,
@@ -138,6 +278,16 @@ class AdminDrawer extends StatelessWidget {
         'title': 'Utilisateurs',
         'route': AppRoutes.adminUtilisateurs,
       },
+      {
+        'icon': Icons.group_work,
+        'title': 'Équipes',
+        'route': AppRoutes.adminEquipes,
+      },
+      {
+        'icon': Icons.wysiwyg_rounded,
+        'title': 'Propositions Commandes',
+        'route': AppRoutes.adminPropositionsCommandes,
+      },
     ];
 
     return ListView.builder(
@@ -146,7 +296,6 @@ class AdminDrawer extends StatelessWidget {
       itemBuilder: (context, index) {
         final item = items[index];
         final isSelected = Get.currentRoute == item['route'];
-
         return Container(
           margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
           child: Material(
@@ -155,10 +304,7 @@ class AdminDrawer extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
               onTap: () => _navigateTo(item['route'] as String),
               child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 16,
-                ),
+                padding: EdgeInsets.symmetric(horizontal: 20, vertical: vPad),
                 decoration: BoxDecoration(
                   color: isSelected
                       ? Colors.white.withOpacity(0.15)
@@ -176,19 +322,21 @@ class AdminDrawer extends StatelessWidget {
                     Icon(
                       item['icon'] as IconData,
                       color: Colors.white,
-                      size: 22,
+                      size: iconSize,
                     ),
-                    const SizedBox(width: 20),
+                    const SizedBox(width: 16),
                     Expanded(
                       child: Text(
                         item['title'] as String,
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 16,
+                          fontSize: textSize,
                           fontWeight: isSelected
                               ? FontWeight.w600
                               : FontWeight.w400,
-                          letterSpacing: 0.5,
+                          letterSpacing: 0.4,
                         ),
                       ),
                     ),
@@ -199,7 +347,7 @@ class AdminDrawer extends StatelessWidget {
                           color: Colors.white.withOpacity(0.2),
                           shape: BoxShape.circle,
                         ),
-                        child: Icon(
+                        child: const Icon(
                           Icons.arrow_forward_ios,
                           color: Colors.white,
                           size: 14,
@@ -215,7 +363,8 @@ class AdminDrawer extends StatelessWidget {
     );
   }
 
-  Widget _buildFooter() {
+  // ---------------- Footer ----------------
+  Widget _buildFooter(double buttonVPad) {
     return Container(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -229,8 +378,8 @@ class AdminDrawer extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.white,
                 foregroundColor: const Color(0xFF0A1E40),
-                padding: const EdgeInsets.symmetric(
-                  vertical: 16,
+                padding: EdgeInsets.symmetric(
+                  vertical: buttonVPad,
                   horizontal: 20,
                 ),
                 shape: RoundedRectangleBorder(
@@ -252,6 +401,7 @@ class AdminDrawer extends StatelessWidget {
     );
   }
 
+  // ---------------- Helpers ----------------
   void _navigateTo(String route) {
     Get.back();
     if (Get.currentRoute != route) {
@@ -275,9 +425,9 @@ class AdminDrawer extends StatelessWidget {
                   color: const Color(0xFF0A1E40).withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.logout,
-                  color: const Color(0xFF0A1E40),
+                  color: Color(0xFF0A1E40),
                   size: 32,
                 ),
               ),
@@ -298,7 +448,6 @@ class AdminDrawer extends StatelessWidget {
               ),
               const SizedBox(height: 24),
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Expanded(
                     child: OutlinedButton(
@@ -349,5 +498,26 @@ class AdminDrawer extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  static double _clamp(double v, double min, double max) {
+    if (v < min) return min;
+    if (v > max) return max;
+    return v;
+  }
+
+  String _labelRole(String? role) {
+    switch ((role ?? '').toUpperCase()) {
+      case 'SUPER_ADMIN':
+        return 'Super Admin';
+      case 'ADMIN':
+        return 'Admin';
+      case 'TECHNICIEN':
+        return 'Technicien';
+      case 'PRODUCTION':
+        return 'Production';
+      default:
+        return (role == null || role.isEmpty) ? '—' : role;
+    }
   }
 }

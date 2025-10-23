@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:front_erp_aromair/view/screens/admin/Propositions_commandes_screen.dart';
 import 'package:front_erp_aromair/view/screens/admin/alerte_detail_screen.dart';
 import 'package:front_erp_aromair/view/screens/admin/alertes_screen.dart';
 import 'package:front_erp_aromair/view/screens/admin/bouteille_detail_screen.dart';
@@ -6,6 +7,11 @@ import 'package:front_erp_aromair/view/screens/admin/client_detail_screen.dart';
 import 'package:front_erp_aromair/view/screens/admin/clientdiffuseur_detail_screen.dart';
 import 'package:front_erp_aromair/view/screens/admin/clients_screen.dart';
 import 'package:front_erp_aromair/view/screens/admin/diffuseur/diffuseurs_screen.dart';
+import 'package:front_erp_aromair/view/screens/admin/equipes/caisse_detail_screen.dart';
+import 'package:front_erp_aromair/view/screens/admin/equipes/detail_technicien_screen.dart';
+import 'package:front_erp_aromair/view/screens/admin/equipes/equipe_details_screen.dart';
+import 'package:front_erp_aromair/view/screens/admin/equipes/equipes_screen.dart';
+import 'package:front_erp_aromair/view/screens/admin/equipes/recette_detail_screen.dart';
 import 'package:front_erp_aromair/view/screens/admin/interventions/etat_clientdiffuseur_screen.dart';
 import 'package:front_erp_aromair/view/screens/admin/interventions/intervention_detail_screen.dart';
 import 'package:front_erp_aromair/view/screens/admin/interventions/interventions_screen.dart';
@@ -98,6 +104,14 @@ class AppPages {
         return BouteilleDetailScreen(bouteilleId: bouteilleId!);
       },
     ),
+    GetPage(
+      name: AppRoutes.recetteTechnicien,
+      page: () => RecetteDetailScreen(),
+    ),
+    GetPage(
+      name: AppRoutes.caisseTechnicien,
+      page: () => const CaisseDetailScreen(),
+    ),
 
     GetPage(
       name: AppRoutes.detailClient,
@@ -146,8 +160,21 @@ class AppPages {
         return ReclamationDetailScreen(reclamationId: idReclamation);
       },
     ),
+    GetPage(
+      name: AppRoutes.adminPropositionsCommandes,
+      page: () => const PropositionsCommandesScreen(),
+    ),
+    GetPage(name: AppRoutes.adminEquipes, page: () => const EquipesScreen()),
+    GetPage(
+      name: AppRoutes.equipeDetails,
+      page: () => const EquipeDetailsScreen(),
+    ),
 
     GetPage(name: AppRoutes.adminUtilisateurs, page: () => const UsersScreen()),
+    GetPage(
+      name: AppRoutes.technicienConsultation,
+      page: () => const TechnicienConsultationScreen(),
+    ),
     GetPage(name: AppRoutes.adminRapports, page: () => const RapportsScreen()),
     // Technicien routes
     GetPage(name: AppRoutes.techHome, page: () => const TechDashboard()),

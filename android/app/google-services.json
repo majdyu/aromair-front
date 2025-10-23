@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "235243161441",
+    "project_id": "aromairerp",
+    "storage_bucket": "aromairerp.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:235243161441:android:dd8f064f66993eeadba720",
+        "android_client_info": {
+          "package_name": "com.example.front_erp_aromair"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCEK9u3pjtzwwhoD-AZ_vlXTaKO5vJOvWI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

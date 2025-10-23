@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:front_erp_aromair/core/net/dio_client.dart';
+import 'package:front_erp_aromair/data/services/contact_service.dart';
 import 'package:front_erp_aromair/routes/app_routes.dart';
 import 'package:front_erp_aromair/view/widgets/common/snackbar.dart';
 import 'package:get/get.dart';
@@ -17,6 +18,7 @@ import 'package:url_launcher/url_launcher_string.dart';
 class ClientDetailController extends GetxController {
   final int clientId;
   ClientDetailController(this.clientId);
+  final contactService = ContactService(buildDio());
 
   // ------- état principal -------
   final isLoading = true.obs;
@@ -25,6 +27,7 @@ class ClientDetailController extends GetxController {
   //----------------------------------------
   final role = ''.obs;
   bool get isSuperAdmin => role.value == 'SUPER_ADMIN';
+  final contacts = <ContactLite>[].obs;
 
   // Edition
   final isEditing = false.obs;
@@ -98,6 +101,7 @@ class ClientDetailController extends GetxController {
         Map<String, dynamic>.from(res.data as Map),
       );
       dto.value = data;
+      contacts.assignAll(dto.value?.contacts ?? []); // ← bind
 
       // Pré-remplir le form
       nomCtrl.text = data.nom;
@@ -239,5 +243,115 @@ class ClientDetailController extends GetxController {
     frLivCtrl.dispose();
     frVisCtrl.dispose();
     super.onClose();
+  }
+
+  Map<String, dynamic> _contactDtoBody({
+    required String nom,
+    required String prenom,
+    String? tel,
+    String? email,
+    int? age,
+    String? sexe,
+    String? poste,
+    required int clientId,
+    String? whatsapp,
+  }) {
+    String? _enumSexe(String? v) {
+      final s = (v ?? '').trim().toUpperCase();
+      if (s.isEmpty) return null;
+      // Accept only valid enum values; fallback to INCONNU if you prefer:
+      if (s == 'HOMME' || s == 'FEMME' || s == 'INCONNU') return s;
+      return 'INCONNU';
+    }
+
+    return {
+      'nom': nom.trim(),
+      'prenom': prenom.trim(),
+      if ((tel ?? '').trim().isNotEmpty) 'tel': tel!.trim(),
+      if ((email ?? '').trim().isNotEmpty) 'email': email!.trim(),
+      if (age != null) 'age': age,
+      if (_enumSexe(sexe) != null) 'sexe': _enumSexe(sexe),
+      if ((poste ?? '').trim().isNotEmpty) 'poste': poste!.trim(),
+      'clientId': clientId,
+      if ((whatsapp ?? '').trim().isNotEmpty) 'whatsapp': whatsapp!.trim(),
+    };
+  }
+
+  Future<void> saveOrUpdateContact({
+    required int? id,
+    required String nom,
+    required String prenom,
+    String? tel,
+    String? whatsapp,
+    String? email,
+    int? age,
+    String? sexe,
+    String? poste,
+  }) async {
+    try {
+      isLoading.value = true;
+      final body = _contactDtoBody(
+        nom: nom,
+        prenom: prenom,
+        tel: tel,
+        email: email,
+        age: age,
+        sexe: sexe,
+        poste: poste,
+        clientId: clientId,
+        whatsapp: whatsapp,
+      );
+      if (id != null) body['id'] = id;
+
+      final saved = await contactService.saveOrUpdate(
+        clientId: clientId,
+        body: body,
+      );
+
+      final cur = dto.value;
+      if (cur != null) {
+        final list = [...cur.contacts];
+        final idx = list.indexWhere((x) => x.id == saved.id);
+        if (idx >= 0) {
+          list[idx] = saved;
+        } else {
+          list.insert(0, saved);
+        }
+        dto.value = cur.copyWith(contacts: list);
+      }
+
+      ElegantSnackbarService.showSuccess(
+        message: 'Contact ${id == null ? 'créé' : 'mis à jour'}',
+      );
+    } catch (e) {
+      print("exception in creating contact $e");
+      error.value = e.toString();
+      ElegantSnackbarService.showError(
+        message: 'Impossible d’enregistrer le contact',
+      );
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> deleteContact(int id) async {
+    try {
+      isLoading.value = true;
+      await contactService.delete(contactId: id);
+
+      final cur = dto.value;
+      if (cur != null) {
+        dto.value = cur.copyWith(
+          contacts: cur.contacts.where((x) => x.id != id).toList(),
+        );
+      }
+
+      ElegantSnackbarService.showSuccess(message: 'Contact supprimé');
+    } catch (e) {
+      error.value = e.toString();
+      ElegantSnackbarService.showError(message: 'Suppression impossible');
+    } finally {
+      isLoading.value = false;
+    }
   }
 }

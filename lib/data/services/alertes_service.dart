@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import '../../utils/storage_helper.dart';
 
 class AlertesService {
   final Dio _dio;
@@ -7,14 +6,9 @@ class AlertesService {
 
   /// GET /api/alertes/{id}
   Future<Map<String, dynamic>> getDetail(int id) async {
-    final token = (await StorageHelper.getUser())?['token'];
-
     final resp = await _dio.get(
       'alertes/$id',
-      options: Options(
-        responseType: ResponseType.json,
-        headers: {if (token != null) 'Authorization': 'Bearer $token'},
-      ),
+      options: Options(responseType: ResponseType.json),
     );
 
     if (resp.data is! Map) {
@@ -28,27 +22,17 @@ class AlertesService {
 
   /// PATCH /api/alertes/{id}/toggle
   Future<void> toggle(int id, {String? decisionPrise}) async {
-    final token = (await StorageHelper.getUser())?['token'];
-
     await _dio.patch(
       'alertes/$id/toggle',
       data: decisionPrise == null ? null : {'decisionPrise': decisionPrise},
-      options: Options(
-        responseType: ResponseType.json,
-        headers: {if (token != null) 'Authorization': 'Bearer $token'},
-      ),
+      options: Options(responseType: ResponseType.json),
     );
   }
 
   Future<List<Map<String, dynamic>>> getList() async {
-    final token = (await StorageHelper.getUser())?['token'];
-
     final resp = await _dio.get(
       'alertes/list',
-      options: Options(
-        responseType: ResponseType.json,
-        headers: {if (token != null) 'Authorization': 'Bearer $token'},
-      ),
+      options: Options(responseType: ResponseType.json),
     );
 
     final data = resp.data;

@@ -1,10 +1,14 @@
 import 'package:intl/intl.dart';
 
-class IdRef { final int id; IdRef(this.id); Map<String, dynamic> toJson()=>{'id':id}; }
+class IdRef {
+  final int id;
+  IdRef(this.id);
+  Map<String, dynamic> toJson() => {'id': id};
+}
 
 class TafCreate {
-  final String typeInterventions;          
-  final IdRef? clientDiffuseur;             
+  final String typeInterventions;
+  final IdRef? clientDiffuseur;
   TafCreate({required this.typeInterventions, this.clientDiffuseur});
   Map<String, dynamic> toJson() => {
     'typeInterventions': typeInterventions,
@@ -17,14 +21,14 @@ class CreateInterventionRequest {
   final bool estPayementObligatoire;
   final String? remarque;
   final IdRef client;
-  final IdRef user;
+  final IdRef equipe;
   final List<TafCreate> tafList;
 
   CreateInterventionRequest({
     required this.date,
     required this.estPayementObligatoire,
     required this.client,
-    required this.user,
+    required this.equipe,
     required this.tafList,
     this.remarque,
   });
@@ -37,7 +41,7 @@ class CreateInterventionRequest {
     'estPayementObligatoire': estPayementObligatoire,
     if (remarque != null && remarque!.isNotEmpty) 'remarque': remarque,
     'client': client.toJson(),
-    'user': user.toJson(),
+    'equipe': equipe.toJson(),
     'tafList': tafList.map((e) => e.toJson()).toList(),
   };
 }

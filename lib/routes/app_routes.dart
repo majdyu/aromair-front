@@ -24,6 +24,12 @@ class AppRoutes {
   static const adminReclamations = '/admin-reclamations';
   static const adminUtilisateurs = '/admin-utilisateurs';
   static const adminRapports = '/admin-rapports';
+  static const adminEquipes = '/admin-equipes';
+  static const equipeDetails = '/admin-equipes/details';
+  static const technicienConsultation = '/techniciens/consultation';
+  static const caisseTechnicien = '/techniciens/caisse';
+  static const recetteTechnicien = '/techniciens/recette';
+  static const adminPropositionsCommandes = '/admin-propositions-commandes';
 
   // Technicien routes
   static const techHome = '/techHome';

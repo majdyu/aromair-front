@@ -1,3 +1,6 @@
+import 'package:front_erp_aromair/core/net/dio_client.dart';
+import 'package:front_erp_aromair/data/repositories/admin/equipe_repository.dart';
+import 'package:front_erp_aromair/data/services/equipe_service.dart';
 import 'package:front_erp_aromair/view/widgets/common/snackbar.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
@@ -8,6 +11,7 @@ import 'package:front_erp_aromair/data/services/interventions_service.dart';
 
 class AddInterventionController extends GetxController {
   final repo = InterventionsRepository(InterventionsService());
+  final repoEquipe = EquipesRepository(EquipesService(buildDio()));
 
   // état chargement / erreur
   final isLoadingLookups = false.obs;
@@ -15,7 +19,7 @@ class AddInterventionController extends GetxController {
 
   // lookups
   final clients = <OptionItem>[].obs;
-  final techniciens = <OptionItem>[].obs;
+  final equipes = <OptionItem>[].obs;
   final diffuseursAll = <OptionItem>[].obs; // dépend du client
 
   // sélections
@@ -120,9 +124,9 @@ class AddInterventionController extends GetxController {
     error.value = null;
     try {
       final c = await repo.clientsMin();
-      final u = await repo.techniciensMin();
+      final u = await repoEquipe.list();
       clients.assignAll(c);
-      techniciens.assignAll(u);
+      equipes.assignAll(u.map((e) => OptionItem(id: e.id, label: e.nom)));
 
       // sécurité: value -> null si absente des items
       if (selectedClientId.value != null &&
@@ -130,7 +134,7 @@ class AddInterventionController extends GetxController {
         selectedClientId.value = null;
       }
       if (selectedUserId.value != null &&
-          !techniciens.any((o) => o.id == selectedUserId.value)) {
+          !equipes.any((o) => o.id == selectedUserId.value)) {
         selectedUserId.value = null;
       }
     } catch (e) {
@@ -263,9 +267,10 @@ class AddInterventionController extends GetxController {
       estPayementObligatoire: estPayementObligatoire.value,
       remarque: remarqueCtrl.text.isEmpty ? null : remarqueCtrl.text,
       client: IdRef(selectedClientId.value!),
-      user: IdRef(selectedUserId.value!),
+      equipe: IdRef(selectedUserId.value!),
       tafList: tafs,
     );
+    print('Submitting: ${body.toJson()}');
 
     try {
       await repo.create(body);

@@ -8,10 +8,10 @@ import 'package:front_erp_aromair/data/repositories/admin/client_repository.dart
 class ClientController extends GetxController {
   final ClientRepository _repo;
   ClientController(this._repo);
-
-  // ------------------------
-  // State
-  // ------------------------
+  static const natureOptions = ["ENTREPRISE", "PARTICULIER"];
+  static const typeOptions = ["ACHAT", "CONVENTION", "MAD"];
+  static const importanceOptions = ["ELEVE", "MOYENNE", "FAIBLE"];
+  static const algoOptions = ["FREQUENCE_PLAN", "SUR_COMMANDE"];
   final RxBool isLoading = false.obs;
   final RxnString error = RxnString();
 
@@ -165,5 +165,23 @@ class ClientController extends GetxController {
     _searchDebouncer?.dispose();
     searchCtrl.dispose();
     super.onClose();
+  }
+
+  Future<void> createClient(Map<String, dynamic> body) async {
+    try {
+      await _repo.createClient(body); // 201 no content expected
+      ElegantSnackbarService.showSuccess(
+        title: 'Succès',
+        message: 'Client créé avec succès.',
+      );
+      await fetch(); // refresh list
+    } catch (e) {
+      final msg = e.toString();
+      ElegantSnackbarService.showError(
+        title: 'Erreur',
+        message: 'Création échouée: $msg',
+      );
+      rethrow;
+    }
   }
 }
