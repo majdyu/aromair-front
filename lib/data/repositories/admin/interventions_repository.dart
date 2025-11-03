@@ -18,7 +18,8 @@ class InterventionsRepository {
 
   Future<void> delete(int id) => _service.delete(id);
 
-  Future<void> create(CreateInterventionRequest body) => _service.create(body);
+  Future<InterventionItem> create(CreateInterventionRequest body) =>
+      _service.create(body);
 
   Future<InterventionDetail> detail(int id) async {
     final data = await _service.detailRaw(id);

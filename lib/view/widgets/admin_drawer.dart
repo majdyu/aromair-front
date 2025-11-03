@@ -288,6 +288,11 @@ class AdminDrawer extends StatelessWidget {
         'title': 'Propositions Commandes',
         'route': AppRoutes.adminPropositionsCommandes,
       },
+      {
+        'icon': Icons.message,
+        'title': 'Messages Broadcast',
+        'route': AppRoutes.adminMessagesBroadcast,
+      },
     ];
 
     return ListView.builder(

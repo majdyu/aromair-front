@@ -1920,6 +1920,7 @@ class ClientDetailScreen extends StatelessWidget {
             kv("Nom du Client", d.nom),
             kv("Téléphone", d.telephone),
             kv("Coordonateur", d.coordonateur),
+            kv("Numero Cordinateur", d.numeroCordinateur ?? '-'),
             kv("Adresse", rawAdr, isUrl: rawAdr.isNotEmpty),
             kv(
               "Fréq. Livraison (jours)",

@@ -5,6 +5,7 @@ class ClientDetail {
   final String nom;
   final String telephone;
   final String coordonateur;
+  final String? numeroCordinateur;
   final String adresse;
   final int? frequenceLivraisonParJour;
   final int? frequenceVisiteParJour;
@@ -29,6 +30,7 @@ class ClientDetail {
     required this.nom,
     required this.telephone,
     required this.coordonateur,
+    this.numeroCordinateur,
     required this.adresse,
     required this.frequenceLivraisonParJour,
     required this.frequenceVisiteParJour,
@@ -52,7 +54,8 @@ class ClientDetail {
       type: j['type']?.toString(),
       nom: j['nom']?.toString() ?? '-',
       telephone: j['telephone']?.toString() ?? '-',
-      coordonateur: j['coordonateur']?.toString() ?? '-',
+      coordonateur: j['nomCoordinateur']?.toString() ?? '-',
+      numeroCordinateur: j['telCoordinateur']?.toString(),
       adresse: j['adresse']?.toString() ?? '-',
       frequenceLivraisonParJour: (j['frequenceLivraisonParJour'] as num?)
           ?.toInt(),

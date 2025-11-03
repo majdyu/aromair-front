@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:front_erp_aromair/view/screens/admin/Propositions_commandes_screen.dart';
+import 'package:front_erp_aromair/view/screens/admin/commande_potentiel/Propositions_commandes_screen.dart';
 import 'package:front_erp_aromair/view/screens/admin/alerte_detail_screen.dart';
 import 'package:front_erp_aromair/view/screens/admin/alertes_screen.dart';
 import 'package:front_erp_aromair/view/screens/admin/bouteille_detail_screen.dart';
@@ -15,6 +15,7 @@ import 'package:front_erp_aromair/view/screens/admin/equipes/recette_detail_scre
 import 'package:front_erp_aromair/view/screens/admin/interventions/etat_clientdiffuseur_screen.dart';
 import 'package:front_erp_aromair/view/screens/admin/interventions/intervention_detail_screen.dart';
 import 'package:front_erp_aromair/view/screens/admin/interventions/interventions_screen.dart';
+import 'package:front_erp_aromair/view/screens/admin/message_screen.dart';
 import 'package:front_erp_aromair/view/screens/admin/rapports_screen.dart';
 import 'package:front_erp_aromair/view/screens/admin/reclamation/reclamation_screen.dart';
 import 'package:front_erp_aromair/view/screens/admin/reclamation/reclamations_detail_screen.dart';
@@ -163,6 +164,10 @@ class AppPages {
     GetPage(
       name: AppRoutes.adminPropositionsCommandes,
       page: () => const PropositionsCommandesScreen(),
+    ),
+    GetPage(
+      name: AppRoutes.adminMessagesBroadcast,
+      page: () => const MessageScreen(),
     ),
     GetPage(name: AppRoutes.adminEquipes, page: () => const EquipesScreen()),
     GetPage(

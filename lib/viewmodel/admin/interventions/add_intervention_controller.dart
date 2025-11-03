@@ -1,35 +1,37 @@
-import 'package:front_erp_aromair/core/net/dio_client.dart';
-import 'package:front_erp_aromair/data/repositories/admin/equipe_repository.dart';
-import 'package:front_erp_aromair/data/services/equipe_service.dart';
-import 'package:front_erp_aromair/view/widgets/common/snackbar.dart';
+// lib/viewmodel/admin/interventions/add_intervention_controller.dart
+import 'package:front_erp_aromair/view/screens/admin/interventions/add_intervention_dialog.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
+import 'package:front_erp_aromair/core/net/dio_client.dart';
 import 'package:front_erp_aromair/data/models/option_item.dart';
 import 'package:front_erp_aromair/data/models/create_intervention_request.dart';
 import 'package:front_erp_aromair/data/repositories/admin/interventions_repository.dart';
+import 'package:front_erp_aromair/data/repositories/admin/equipe_repository.dart';
 import 'package:front_erp_aromair/data/services/interventions_service.dart';
+import 'package:front_erp_aromair/data/services/equipe_service.dart';
+import 'package:front_erp_aromair/view/widgets/common/snackbar.dart';
 
 class AddInterventionController extends GetxController {
   final repo = InterventionsRepository(InterventionsService());
   final repoEquipe = EquipesRepository(EquipesService(buildDio()));
 
-  // état chargement / erreur
+  final PreFillIntervention? prefill;
+
+  AddInterventionController({this.prefill});
+
   final isLoadingLookups = false.obs;
   final error = RxnString();
 
-  // lookups
   final clients = <OptionItem>[].obs;
   final equipes = <OptionItem>[].obs;
-  final diffuseursAll = <OptionItem>[].obs; // dépend du client
+  final diffuseursAll = <OptionItem>[].obs;
 
-  // sélections
   final selectedClientId = RxnInt();
   final selectedUserId = RxnInt();
   final date = DateTime.now().obs;
   final remarqueCtrl = TextEditingController();
   final estPayementObligatoire = false.obs;
-
-  // types gérés
+  final createdInterventionId = RxnInt();
   final types = const [
     'CONTROLE',
     'DEMO',
@@ -51,72 +53,28 @@ class AddInterventionController extends GetxController {
     _ => t,
   };
 
-  // état par type
   late final Map<String, RxBool> enabled = {
-    for (final t in types) t: (t == 'CONTROLE').obs,
-  }; // CONTROLE coché par défaut
+    for (final t in types) t: false.obs,
+  };
 
-  // RxMap de RxList => chaque add/remove déclenche un rebuild
   late final RxMap<String, RxList<RxnInt>> linesByType =
       <String, RxList<RxnInt>>{}.obs;
-
-  void _ensureOneLineIfEnabled(String type) {
-    final list = linesByType[type]!;
-    if (enabled[type]!.value && list.isEmpty) {
-      list.add(RxnInt());
-    }
-  }
-
-  int maxLinesForType(String type) => diffuseursAll.length;
-
-  /// IDs de diffuseurs déjà utilisés dans *tous* les types activés.
-  /// (On peut exclure la ligne courante pour afficher sa propre valeur.)
-  Set<int> _selectedIdsGlobal({String? exceptType, int? exceptIndex}) {
-    final used = <int>{};
-    for (final t in types) {
-      if (!(enabled[t]?.value ?? false)) continue;
-      final list = linesByType[t]!;
-      for (int i = 0; i < list.length; i++) {
-        if (t == exceptType && i == exceptIndex) continue;
-        final v = list[i].value;
-        if (v != null) used.add(v);
-      }
-    }
-    return used;
-  }
-
-  /// reste global disponible (tous types confondus)
-  int _remainingSlotsGlobal() {
-    final used = _selectedIdsGlobal();
-    final total = diffuseursAll.length;
-    final rem = total - used.length;
-    return rem < 0 ? 0 : rem;
-  }
-
-  bool canAddLine(String type) {
-    if (!(enabled[type]?.value ?? false)) return false;
-    if (_remainingSlotsGlobal() <= 0) return false;
-    return linesByType[type]!.length < diffuseursAll.length;
-  }
-
-  void addLine(String type) {
-    final list = linesByType[type]!;
-    if (canAddLine(type)) list.add(RxnInt()); // RxList => rebuild
-  }
-
-  void removeLine(String type, int idx) {
-    final list = linesByType[type]!;
-    if (list.length > 1) list.removeAt(idx); // RxList => rebuild
-  }
 
   @override
   void onInit() {
     super.onInit();
     for (final t in types) {
-      linesByType[t] = <RxnInt>[].obs; // crée une RxList pour chaque type
-      _ensureOneLineIfEnabled(t);
+      linesByType[t] = <RxnInt>[].obs;
     }
-    _loadLookups();
+
+    if (prefill == null) {
+      enabled['CONTROLE']!.value = true;
+      linesByType['CONTROLE']!.add(RxnInt());
+    }
+
+    _loadLookups().then((_) {
+      if (prefill != null) _applyPrefill();
+    });
   }
 
   Future<void> _loadLookups() async {
@@ -128,7 +86,6 @@ class AddInterventionController extends GetxController {
       clients.assignAll(c);
       equipes.assignAll(u.map((e) => OptionItem(id: e.id, label: e.nom)));
 
-      // sécurité: value -> null si absente des items
       if (selectedClientId.value != null &&
           !clients.any((o) => o.id == selectedClientId.value)) {
         selectedClientId.value = null;
@@ -148,6 +105,21 @@ class AddInterventionController extends GetxController {
     }
   }
 
+  Future<void> _applyPrefill() async {
+    final p = prefill!;
+    selectedClientId.value = p.clientId;
+
+    try {
+      diffuseursAll.assignAll(await repo.diffuseursByClientMin(p.clientId));
+    } catch (_) {}
+
+    final type = p.type;
+    enabled[type]!.value = true;
+    final list = linesByType[type]!;
+    list.clear();
+    list.add(RxnInt(p.diffuseurId));
+  }
+
   Future<void> onClientChanged(int? id) async {
     selectedClientId.value = id;
     diffuseursAll.clear();
@@ -163,7 +135,7 @@ class AddInterventionController extends GetxController {
         diffuseursAll.assignAll(await repo.diffuseursByClientMin(id));
         for (final t in types) {
           final list = linesByType[t]!;
-          final max = maxLinesForType(t);
+          final max = diffuseursAll.length;
           if (list.length > max) list.removeRange(max, list.length);
           if ((enabled[t]?.value ?? false) && list.isEmpty) list.add(RxnInt());
         }
@@ -176,27 +148,54 @@ class AddInterventionController extends GetxController {
     }
   }
 
-  // options autorisées pour une ligne d’un type (sans doublon dans le même type)
   List<OptionItem> optionsFor(String type, int index) {
     final keep = linesByType[type]![index].value;
-    final usedEverywhere = _selectedIdsGlobal(
-      exceptType: type,
-      exceptIndex: index,
-    );
+    final usedEverywhere = <int>{};
+    for (final t in types) {
+      if (!(enabled[t]?.value ?? false)) continue;
+      final list = linesByType[t]!;
+      for (int i = 0; i < list.length; i++) {
+        if (t == type && i == index) continue;
+        final v = list[i].value;
+        if (v != null) usedEverywhere.add(v);
+      }
+    }
     return diffuseursAll
         .where((o) => o.id == keep || !usedEverywhere.contains(o.id))
         .toList();
   }
 
+  bool canAddLine(String type) {
+    if (!(enabled[type]?.value ?? false)) return false;
+    if (diffuseursAll.length <= usedEverywhereCount()) return false;
+    return linesByType[type]!.length < diffuseursAll.length;
+  }
+
+  int usedEverywhereCount() {
+    final used = <int>{};
+    for (final t in types) {
+      if (!(enabled[t]?.value ?? false)) continue;
+      for (final r in linesByType[t]!) {
+        if (r.value != null) used.add(r.value!);
+      }
+    }
+    return used.length;
+  }
+
+  void addLine(String type) {
+    if (canAddLine(type)) linesByType[type]!.add(RxnInt());
+  }
+
+  void removeLine(String type, int idx) {
+    final list = linesByType[type]!;
+    if (list.length > 1) list.removeAt(idx);
+  }
+
   void toggleType(String type, bool? v) {
     final newVal = v ?? false;
     enabled[type]!.value = newVal;
-    if (newVal) {
-      _ensureOneLineIfEnabled(type);
-    } else {
-      for (final r in linesByType[type]!) {
-        r.value = null; // libère ces IDs pour les autres types
-      }
+    if (!newVal) {
+      for (final r in linesByType[type]!) r.value = null;
     }
   }
 
@@ -223,6 +222,7 @@ class AddInterventionController extends GetxController {
       );
       return false;
     }
+
     if (diffuseursAll.isEmpty) {
       ElegantSnackbarService.showError(
         title: 'Client',
@@ -236,10 +236,8 @@ class AddInterventionController extends GetxController {
 
     for (final t in types) {
       if (!(enabled[t]?.value ?? false)) continue;
-
       final rows = linesByType[t]!;
       final ids = rows.map((r) => r.value).whereType<int>().toList();
-
       if (ids.isEmpty) {
         ElegantSnackbarService.showError(
           title: pretty(t),
@@ -247,7 +245,6 @@ class AddInterventionController extends GetxController {
         );
         return false;
       }
-
       for (final id in ids) {
         if (usedGlobal.contains(id)) {
           ElegantSnackbarService.showError(
@@ -270,13 +267,12 @@ class AddInterventionController extends GetxController {
       equipe: IdRef(selectedUserId.value!),
       tafList: tafs,
     );
-    print('Submitting: ${body.toJson()}');
 
     try {
-      await repo.create(body);
-      ElegantSnackbarService.showSuccess(
-        message: 'Intervention créée avec succès',
-      );
+      final created = await repo.create(body);
+      print("Intervention créée avec ID: ${created.id}");
+      createdInterventionId.value = created.id;
+
       return true;
     } catch (e) {
       ElegantSnackbarService.showError(

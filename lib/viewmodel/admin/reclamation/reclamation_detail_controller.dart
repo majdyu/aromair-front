@@ -136,8 +136,9 @@ class ReclamationDetailController extends GetxController {
       return;
     }
 
-    final bool? ok = await showAddInterventionDialog(context);
-    if (ok == true) {
+    final result = await showAddInterventionDialog(context);
+
+    if (result?['success'] == true) {
       ElegantSnackbarService.showSuccess(message: 'Intervention ajoutée.');
       // await fetch();
     }

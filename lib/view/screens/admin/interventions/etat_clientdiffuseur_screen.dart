@@ -471,7 +471,7 @@ class EtatClientDiffuseurScreen extends StatelessWidget {
                 child: Column(
                   children: [
                     _infoRow("Type", bouteille.type ?? "-"),
-                    _infoRow("Parfum", bouteille.parfum ?? "-"),
+                    _infoRow("Parfum", bouteille.parfum!.nom),
                     const SizedBox(height: 8),
                     Row(
                       children: [

@@ -618,7 +618,6 @@ class _LineTile extends StatelessWidget {
               ),
             ),
 
-          // Transaction ID (if available)
           if (transactionId != null) ...[
             const SizedBox(height: 12),
             Container(

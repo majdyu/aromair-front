@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:front_erp_aromair/view/widgets/common/assistant_floating.dart';
 import 'package:get/get.dart';
 import 'package:fl_chart/fl_chart.dart';
 
@@ -15,15 +16,10 @@ class OverviewScreen extends StatelessWidget {
     return GetX<OverviewController>(
       init: OverviewController(),
       builder: (c) {
-        if (c.isLoading.value) {
-          return _buildLoadingState();
-        }
+        if (c.isLoading.value) return _buildLoadingState();
+        if (c.error.value != null) return _buildErrorState(c);
 
-        if (c.error.value != null) {
-          return _buildErrorState(c);
-        }
-
-        // Data Processing - ONLY using actual available data
+        // Data
         final sav = _safe(c.data, OverviewController.iRendementSav);
         final sat = _safe(c.data, OverviewController.iSatisfaction);
         final nbDiff = _safe(c.data, OverviewController.iNbDiffuseurs);
@@ -48,53 +44,63 @@ class OverviewScreen extends StatelessWidget {
                 ],
               ),
             ),
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  children: [
-                    // Header
-                    _buildHeader(),
-                    const SizedBox(height: 32),
-
-                    // Performance Gauges - Using actual SAV and Satisfaction data
-                    _buildPerformanceGauges(sav, sat),
-                    const SizedBox(height: 32),
-
-                    // Main Charts Grid - Using ONLY actual data
-                    GridView.count(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      crossAxisCount: MediaQuery.of(context).size.width > 1200
-                          ? 2
-                          : 1,
-                      crossAxisSpacing: 24,
-                      mainAxisSpacing: 24,
-                      childAspectRatio: 1.6,
+            child: Stack(
+              children: [
+                // Main scrollable dashboard
+                SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
                       children: [
-                        // Client Distribution - Using actual client type data
-                        _buildClientsDistributionChart(nbAchat, nbConv, nbMad),
-                        // Operations Overview - Using actual operations data
-                        _buildOperationsChart(nbInterv, nbDiff, nbTech),
+                        _buildHeader(),
+                        const SizedBox(height: 32),
+
+                        _buildPerformanceGauges(sav, sat),
+                        const SizedBox(height: 32),
+
+                        GridView.count(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          crossAxisCount:
+                              MediaQuery.of(context).size.width > 1200 ? 2 : 1,
+                          crossAxisSpacing: 24,
+                          mainAxisSpacing: 24,
+                          childAspectRatio: 1.6,
+                          children: [
+                            _buildClientsDistributionChart(
+                              nbAchat,
+                              nbConv,
+                              nbMad,
+                            ),
+                            _buildOperationsChart(nbInterv, nbDiff, nbTech),
+                          ],
+                        ),
+
+                        const SizedBox(height: 32),
+
+                        _buildMetricsSummary(
+                          nbDiff,
+                          nbTech,
+                          nbInterv,
+                          nbAchat,
+                          nbConv,
+                          nbMad,
+                          context,
+                        ),
                       ],
                     ),
-
-                    const SizedBox(height: 32),
-
-                    // Metrics Summary - Using actual count data
-                    _buildMetricsSummary(
-                      nbDiff,
-                      nbTech,
-                      nbInterv,
-                      nbAchat,
-                      nbConv,
-                      nbMad,
-                      context,
-                    ),
-                  ],
+                  ),
                 ),
-              ),
+
+                const AssistantOrbMin(
+                  modelPath: 'assets/3d/businesswoman.glb',
+                  size: 150,
+                  yawAmplitudeDeg: 5, // barely noticeable
+                  yawPeriodSec: 12,
+                  enableCaption: true,
+                ),
+              ],
             ),
           ),
         );
@@ -467,7 +473,7 @@ class OverviewScreen extends StatelessWidget {
             child: BarChart(
               BarChartData(
                 alignment: BarChartAlignment.spaceAround,
-                maxY: maxValue * 1.2,
+                maxY: (maxValue == 0 ? 1 : maxValue) * 1.2,
                 barTouchData: BarTouchData(enabled: false),
                 titlesData: FlTitlesData(
                   show: true,
@@ -497,15 +503,13 @@ class OverviewScreen extends StatelessWidget {
                   leftTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
-                      getTitlesWidget: (value, meta) {
-                        return Text(
-                          value.toInt().toString(),
-                          style: const TextStyle(
-                            color: Colors.white54,
-                            fontSize: 10,
-                          ),
-                        );
-                      },
+                      getTitlesWidget: (value, meta) => Text(
+                        value.toInt().toString(),
+                        style: const TextStyle(
+                          color: Colors.white54,
+                          fontSize: 10,
+                        ),
+                      ),
                       reservedSize: 40,
                     ),
                   ),
@@ -519,7 +523,7 @@ class OverviewScreen extends StatelessWidget {
                 gridData: FlGridData(
                   show: true,
                   drawVerticalLine: false,
-                  horizontalInterval: maxValue / 4,
+                  horizontalInterval: (maxValue == 0 ? 1 : maxValue) / 4,
                   getDrawingHorizontalLine: (value) => FlLine(
                     color: Colors.white.withOpacity(0.1),
                     strokeWidth: 1,
@@ -540,7 +544,6 @@ class OverviewScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(4),
                       ),
                     ],
-                    showingTooltipIndicators: [0],
                   ),
                   BarChartGroupData(
                     x: 1,
@@ -552,7 +555,6 @@ class OverviewScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(4),
                       ),
                     ],
-                    showingTooltipIndicators: [0],
                   ),
                   BarChartGroupData(
                     x: 2,
@@ -564,7 +566,6 @@ class OverviewScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(4),
                       ),
                     ],
-                    showingTooltipIndicators: [0],
                   ),
                 ],
               ),

@@ -30,6 +30,7 @@ class AppRoutes {
   static const caisseTechnicien = '/techniciens/caisse';
   static const recetteTechnicien = '/techniciens/recette';
   static const adminPropositionsCommandes = '/admin-propositions-commandes';
+  static const adminMessagesBroadcast = '/admin-messages-broadcast';
 
   // Technicien routes
   static const techHome = '/techHome';

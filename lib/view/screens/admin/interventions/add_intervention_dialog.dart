@@ -1,3 +1,4 @@
+// lib/view/screens/admin/interventions/add_intervention_dialog.dart
 import 'package:flutter/material.dart';
 import 'package:front_erp_aromair/theme/colors.dart';
 import 'package:get/get.dart';
@@ -6,16 +7,30 @@ import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:front_erp_aromair/data/models/option_item.dart';
 import 'package:front_erp_aromair/viewmodel/admin/interventions/add_intervention_controller.dart';
 
-Future<bool?> showAddInterventionDialog(BuildContext context) {
-  return showModalBottomSheet<bool>(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
-    builder: (context) => DraggableScrollableSheet(
+/// Model for pre-filling the form (from Commande)
+class PreFillIntervention {
+  final int clientId;
+  final int diffuseurId;
+  final String type;
+
+  PreFillIntervention({
+    required this.clientId,
+    required this.diffuseurId,
+    this.type = 'LIVRAISON',
+  });
+}
+
+/// Opens the dialog – returns {success: true, date: DateTime} on success
+Future<Map<String, dynamic>?> showAddInterventionDialog(
+  BuildContext context, {
+  PreFillIntervention? prefill,
+}) async {
+  return await Get.bottomSheet<Map<String, dynamic>>(
+    DraggableScrollableSheet(
       initialChildSize: 0.9,
       minChildSize: 0.5,
       maxChildSize: 0.95,
-      builder: (_, controller) => Container(
+      builder: (_, scrollCtrl) => Container(
         decoration: const BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -32,21 +47,25 @@ Future<bool?> showAddInterventionDialog(BuildContext context) {
                 borderRadius: BorderRadius.circular(3),
               ),
             ),
-            Expanded(child: _AddInterventionForm()),
+            Expanded(child: _AddInterventionForm(prefill: prefill)),
           ],
         ),
       ),
     ),
+    // mêmes options que showModalBottomSheet
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
   );
 }
 
 class _AddInterventionForm extends StatelessWidget {
-  const _AddInterventionForm();
+  final PreFillIntervention? prefill;
+  const _AddInterventionForm({this.prefill});
 
   @override
   Widget build(BuildContext context) {
     return GetX<AddInterventionController>(
-      init: AddInterventionController(),
+      init: AddInterventionController(prefill: prefill),
       builder: (c) {
         String fmt(DateTime d) => DateFormat('dd/MM/yyyy').format(d);
         final clientSearchCtrl = TextEditingController();
@@ -170,7 +189,7 @@ class _AddInterventionForm extends StatelessWidget {
                         children: [
                           Expanded(
                             child: OutlinedButton(
-                              onPressed: () => Navigator.pop(context, false),
+                              onPressed: () => Get.back(result: null),
                               style: OutlinedButton.styleFrom(
                                 foregroundColor: AppColors.secondary,
                                 padding: const EdgeInsets.symmetric(
@@ -187,10 +206,19 @@ class _AddInterventionForm extends StatelessWidget {
                           Expanded(
                             child: FilledButton(
                               onPressed: () async {
+                                print("Submitting new intervention...");
                                 final ok = await c.submit();
-                                if (ok && context.mounted) {
-                                  Navigator.pop(context, true);
+                                if (ok) {
+                                  Get.back(
+                                    result: {
+                                      'success': true,
+                                      'date': c.date.value,
+                                      'interventionId':
+                                          c.createdInterventionId.value,
+                                    },
+                                  );
                                 }
+                                print("Submission done.$ok");
                               },
                               style: FilledButton.styleFrom(
                                 backgroundColor: AppColors.primary,
@@ -217,12 +245,11 @@ class _AddInterventionForm extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionTitle(String title) {
-    return Text(
-      title,
-      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
-    );
-  }
+  // === ALL YOUR ORIGINAL WIDGETS BELOW (unchanged) ===
+  Widget _buildSectionTitle(String title) => Text(
+    title,
+    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+  );
 
   Widget _buildDropdown({
     required String hint,
@@ -283,7 +310,6 @@ class _AddInterventionForm extends StatelessWidget {
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        prefixIcon: const Icon(Icons.search, size: 20),
                       ),
                     ),
                   ),
@@ -369,7 +395,6 @@ class _AddInterventionForm extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Type header
           Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
@@ -392,14 +417,12 @@ class _AddInterventionForm extends StatelessWidget {
               ],
             ),
           ),
-
           if (enabled.value) ...[
             const Divider(height: 1),
             Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  // Message if no diffusers
                   if (c.selectedClientId.value != null &&
                       c.diffuseursAll.isEmpty)
                     Container(
@@ -428,14 +451,11 @@ class _AddInterventionForm extends StatelessWidget {
                         ],
                       ),
                     ),
-
                   if (c.selectedClientId.value != null &&
                       c.diffuseursAll.isNotEmpty) ...[
-                    // Dynamic lines
                     ...List.generate(lines.length, (i) {
                       final opts = c.optionsFor(type, i);
                       final canAddRow = c.canAddLine(type);
-
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 12),
                         child: Row(
@@ -471,8 +491,6 @@ class _AddInterventionForm extends StatelessWidget {
                         ),
                       );
                     }),
-
-                    // Add line button
                     if (c.canAddLine(type))
                       Align(
                         alignment: Alignment.centerLeft,

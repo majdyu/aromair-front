@@ -63,10 +63,11 @@ class InterventionsService {
     return resp.data as Map<String, dynamic>;
   }
 
-  Future<void> create(CreateInterventionRequest body) async {
+  Future<InterventionItem> create(CreateInterventionRequest body) async {
     final user = await StorageHelper.getUser();
     final token = user?['token'];
-    await _dio.post(
+
+    final response = await _dio.post(
       "interventions/create",
       data: body.toJson(),
       options: Options(
@@ -76,6 +77,10 @@ class InterventionsService {
         },
       ),
     );
+
+    // response.data is Map<String, dynamic>
+    final data = response.data as Map<String, dynamic>;
+    return InterventionItem.fromJson(data);
   }
 
   // --- Lookups (routes back plus bas) ---

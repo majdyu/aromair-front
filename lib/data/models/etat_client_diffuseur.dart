@@ -1,5 +1,7 @@
 // lib/data/models/etat_client_diffuseur.dart
 
+import 'package:front_erp_aromair/data/models/parfum.dart';
+
 class EtatClientDiffuseur {
   final int interventionId;
   final int clientDiffuseurId;
@@ -142,7 +144,9 @@ class EtatClientDiffuseur {
 
     final bouteille = j['bouteille'] == null
         ? null
-        : BouteilleEtat.fromJson(Map<String, dynamic>.from(j['bouteille'] as Map));
+        : BouteilleEtat.fromJson(
+            Map<String, dynamic>.from(j['bouteille'] as Map),
+          );
 
     final alertes = _list<AlerteEtat>(
       j['alertes'],
@@ -175,25 +179,25 @@ class EtatClientDiffuseur {
   }
 
   Map<String, dynamic> toJson() => {
-        'interventionId': interventionId,
-        'clientDiffuseurId': clientDiffuseurId,
-        'cab': cab,
-        'modele': modele,
-        'typeCarte': typeCarte,
-        'emplacement': emplacement,
-        'dateMiseEnMarche': dateMiseEnMarche?.toIso8601String(),
-        'maxMinutesParJour': maxMinutesParJour,
-        'rythmeConsomParJour': rythmeConsomParJour,
-        'programmes': programmes.map((e) => e.toJson()).toList(),
-        'bouteille': bouteille?.toJson(),
-        // legacy
-        'qualiteBonne': qualiteBonne,
-        'fuite': fuite,
-        'enMarche': enMarche,
-        // bloc embedded
-        'infos': infos == null ? null : infos!.toJson(),
-        'alertes': alertes.map((e) => e.toJson()).toList(),
-      };
+    'interventionId': interventionId,
+    'clientDiffuseurId': clientDiffuseurId,
+    'cab': cab,
+    'modele': modele,
+    'typeCarte': typeCarte,
+    'emplacement': emplacement,
+    'dateMiseEnMarche': dateMiseEnMarche?.toIso8601String(),
+    'maxMinutesParJour': maxMinutesParJour,
+    'rythmeConsomParJour': rythmeConsomParJour,
+    'programmes': programmes.map((e) => e.toJson()).toList(),
+    'bouteille': bouteille?.toJson(),
+    // legacy
+    'qualiteBonne': qualiteBonne,
+    'fuite': fuite,
+    'enMarche': enMarche,
+    // bloc embedded
+    'infos': infos == null ? null : infos!.toJson(),
+    'alertes': alertes.map((e) => e.toJson()).toList(),
+  };
 }
 
 // ------------------------------------------------------------
@@ -232,13 +236,13 @@ class ProgrammeEtat {
   }
 
   Map<String, dynamic> toJson() => {
-        'tempsEnMarche': tempsEnMarche,
-        'tempsDeRepos': tempsDeRepos,
-        'unite': unite,
-        'heureDebut': heureDebut,
-        'heureFin': heureFin,
-        'joursActifs': joursActifs,
-      };
+    'tempsEnMarche': tempsEnMarche,
+    'tempsDeRepos': tempsDeRepos,
+    'unite': unite,
+    'heureDebut': heureDebut,
+    'heureFin': heureFin,
+    'joursActifs': joursActifs,
+  };
 }
 
 // ------------------------------------------------------------
@@ -246,7 +250,7 @@ class ProgrammeEtat {
 class BouteilleEtat {
   final int? id;
   final String? type;
-  final String? parfum;
+  final Parfum? parfum;
   final int? qteInitiale;
   final int? qtePrevu;
   final int? qteExistante;
@@ -268,7 +272,9 @@ class BouteilleEtat {
     return BouteilleEtat(
       id: (j['id'] as num?)?.toInt(),
       type: j['type']?.toString(),
-      parfum: j['parfum']?.toString(),
+      parfum: j['parfum'] == null
+          ? null
+          : Parfum.fromJson(Map<String, dynamic>.from(j['parfum'] as Map)),
       qteInitiale: (j['qteInitiale'] as num?)?.toInt(),
       qtePrevu: (j['qtePrevu'] as num?)?.toInt(),
       qteExistante: exist?.toInt(),
@@ -276,13 +282,13 @@ class BouteilleEtat {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'type': type,
-        'parfum': parfum,
-        'qteInitiale': qteInitiale,
-        'qtePrevu': qtePrevu,
-        'qteExistante': qteExistante,
-      };
+    'id': id,
+    'type': type,
+    'parfum': parfum,
+    'qteInitiale': qteInitiale,
+    'qtePrevu': qtePrevu,
+    'qteExistante': qteExistante,
+  };
 }
 
 // ------------------------------------------------------------
@@ -320,12 +326,12 @@ class AlerteEtat {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'date': date,
-        'probleme': probleme,
-        'cause': cause,
-        'etatResolution': etatResolution,
-      };
+    'id': id,
+    'date': date,
+    'probleme': probleme,
+    'cause': cause,
+    'etatResolution': etatResolution,
+  };
 }
 
 // ------------------------------------------------------------
@@ -335,15 +341,15 @@ class InfosInterCD {
   final bool? fuite;
   final bool? enMarche;
 
-  final bool? tuyeauPosition;        // true=intérieur / false=extérieur
+  final bool? tuyeauPosition; // true=intérieur / false=extérieur
   final bool? estEnPlace;
   final bool? estAutocolantApplique;
   final bool? estDommage;
-  final bool? branchement;            // true=branché
+  final bool? branchement; // true=branché
   final bool? estLivraisonEffectue;
   final bool? estProgrammeChange;
 
-  final String? etatSoftware;         // "DECALE" | "CORRECTE" | "DEFAILLANT"
+  final String? etatSoftware; // "DECALE" | "CORRECTE" | "DEFAILLANT"
   final String? motifArret;
   final String? motifDebranchement;
   final String? motifInsatisfaction;
@@ -366,36 +372,36 @@ class InfosInterCD {
   });
 
   factory InfosInterCD.fromJson(Map<String, dynamic> j) => InfosInterCD(
-        qualiteBonne: j['qualiteBonne'] as bool?,
-        fuite: j['fuite'] as bool?,
-        enMarche: j['enMarche'] as bool?,
-        tuyeauPosition: j['tuyeauPosition'] as bool?,
-        estEnPlace: j['estEnPlace'] as bool?,
-        estAutocolantApplique: j['estAutocolantApplique'] as bool?,
-        estDommage: j['estDommage'] as bool?,
-        branchement: j['branchement'] as bool?,
-        estLivraisonEffectue: j['estLivraisonEffectue'] as bool?,
-        estProgrammeChange: j['estProgrammeChange'] as bool?,
-        etatSoftware: j['etatSoftware']?.toString(),
-        motifArret: j['motifArret']?.toString(),
-        motifDebranchement: j['motifDebranchement']?.toString(),
-        motifInsatisfaction: j['motifInsatisfaction']?.toString(),
-      );
+    qualiteBonne: j['qualiteBonne'] as bool?,
+    fuite: j['fuite'] as bool?,
+    enMarche: j['enMarche'] as bool?,
+    tuyeauPosition: j['tuyeauPosition'] as bool?,
+    estEnPlace: j['estEnPlace'] as bool?,
+    estAutocolantApplique: j['estAutocolantApplique'] as bool?,
+    estDommage: j['estDommage'] as bool?,
+    branchement: j['branchement'] as bool?,
+    estLivraisonEffectue: j['estLivraisonEffectue'] as bool?,
+    estProgrammeChange: j['estProgrammeChange'] as bool?,
+    etatSoftware: j['etatSoftware']?.toString(),
+    motifArret: j['motifArret']?.toString(),
+    motifDebranchement: j['motifDebranchement']?.toString(),
+    motifInsatisfaction: j['motifInsatisfaction']?.toString(),
+  );
 
   Map<String, dynamic> toJson() => {
-        'qualiteBonne': qualiteBonne,
-        'fuite': fuite,
-        'enMarche': enMarche,
-        'tuyeauPosition': tuyeauPosition,
-        'estEnPlace': estEnPlace,
-        'estAutocolantApplique': estAutocolantApplique,
-        'estDommage': estDommage,
-        'branchement': branchement,
-        'estLivraisonEffectue': estLivraisonEffectue,
-        'estProgrammeChange': estProgrammeChange,
-        'etatSoftware': etatSoftware,
-        'motifArret': motifArret,
-        'motifDebranchement': motifDebranchement,
-        'motifInsatisfaction': motifInsatisfaction,
-      };
+    'qualiteBonne': qualiteBonne,
+    'fuite': fuite,
+    'enMarche': enMarche,
+    'tuyeauPosition': tuyeauPosition,
+    'estEnPlace': estEnPlace,
+    'estAutocolantApplique': estAutocolantApplique,
+    'estDommage': estDommage,
+    'branchement': branchement,
+    'estLivraisonEffectue': estLivraisonEffectue,
+    'estProgrammeChange': estProgrammeChange,
+    'etatSoftware': etatSoftware,
+    'motifArret': motifArret,
+    'motifDebranchement': motifDebranchement,
+    'motifInsatisfaction': motifInsatisfaction,
+  };
 }

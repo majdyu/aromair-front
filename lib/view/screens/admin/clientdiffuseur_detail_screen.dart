@@ -284,7 +284,7 @@ class ClientDiffuseurDetailScreen extends StatelessWidget {
                                             const Divider(height: 20),
                                             _infoRow(
                                               "Parfum",
-                                              data.bouteille!.parfum ?? "-",
+                                              data.bouteille!.parfum!.nom,
                                             ),
                                             const SizedBox(height: 16),
                                             SizedBox(
@@ -295,7 +295,10 @@ class ClientDiffuseurDetailScreen extends StatelessWidget {
                                                   if (id != null) {
                                                     // (Optionally convert to args-based route if you have one)
                                                     Get.toNamed(
-                                                      '/bouteilles/$id',
+                                                      AppRoutes.bouteilleDetail,
+                                                      arguments: {
+                                                        'bouteilleId': id,
+                                                      },
                                                     );
                                                   } else {
                                                     Get.snackbar(

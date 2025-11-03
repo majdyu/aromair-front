@@ -4,17 +4,40 @@ import 'package:front_erp_aromair/data/enums/status_commandes.dart';
 class CommandePotentielleRow {
   final int id;
   final StatusCommande status;
-  final DateTime? date; // "2025-10-17" (LocalDate)
+
+  /// LocalDate from backend – can be "YYYY-MM-DD" or [YYYY,MM,DD]
+  final DateTime? date;
+
   final bool bouteilleVide;
+
+  /// Optionnel (peut être null)
+  final int? nbrBouteilles;
+
+  /// Quantité demandée / prévue (optionnel)
+  final int? quantite;
+
+  /// Optionnel
+  final String? typeTete;
+
+  /// Peut être manquant dans certaines réponses -> on met 0 par défaut
   final int clientId;
   final String? clientNom;
+
+  /// Peut venir en int/string -> on garde toujours String
   final String? telephone;
+
+  /// Peut arriver sous "clientDiffuseurId" ou "clientDiffuseur"
   final int clientDiffuseurId;
+
   final String? diffuseurCab;
   final String? diffuseurDesignation;
   final String? emplacement;
-  final DateTime? datePlanification; // (LocalDateTime) peut être null
-  final int parfumId;
+
+  /// LocalDateTime ou null, ex. "2025-10-24T09:48:09"
+  final DateTime? datePlanification;
+
+  /// Peut arriver sous "parfumId" ou "parfum"
+  final int? parfumId;
   final String? parfumNom;
 
   const CommandePotentielleRow({
@@ -22,16 +45,19 @@ class CommandePotentielleRow {
     required this.status,
     required this.date,
     required this.bouteilleVide,
+    this.nbrBouteilles,
+    this.quantite,
+    this.typeTete,
     required this.clientId,
-    required this.clientNom,
-    required this.telephone,
+    this.clientNom,
+    this.telephone,
     required this.clientDiffuseurId,
-    required this.diffuseurCab,
-    required this.diffuseurDesignation,
-    required this.emplacement,
-    required this.datePlanification,
-    required this.parfumId,
-    required this.parfumNom,
+    this.diffuseurCab,
+    this.diffuseurDesignation,
+    this.emplacement,
+    this.datePlanification,
+    this.parfumId,
+    this.parfumNom,
   });
 
   CommandePotentielleRow copyWith({
@@ -39,6 +65,9 @@ class CommandePotentielleRow {
     StatusCommande? status,
     DateTime? date,
     bool? bouteilleVide,
+    int? nbrBouteilles,
+    int? quantite,
+    String? typeTete,
     int? clientId,
     String? clientNom,
     String? telephone,
@@ -55,6 +84,9 @@ class CommandePotentielleRow {
       status: status ?? this.status,
       date: date ?? this.date,
       bouteilleVide: bouteilleVide ?? this.bouteilleVide,
+      nbrBouteilles: nbrBouteilles ?? this.nbrBouteilles,
+      quantite: quantite ?? this.quantite,
+      typeTete: typeTete ?? this.typeTete,
       clientId: clientId ?? this.clientId,
       clientNom: clientNom ?? this.clientNom,
       telephone: telephone ?? this.telephone,
@@ -71,33 +103,93 @@ class CommandePotentielleRow {
   factory CommandePotentielleRow.fromJson(Map<String, dynamic> j) {
     DateTime? _parseDate(dynamic v) {
       if (v == null) return null;
-      // Handles "YYYY-MM-DD" and full ISO strings.
-      return DateTime.tryParse(v.toString());
+      if (v is String) return DateTime.tryParse(v);
+      if (v is List && v.length >= 3) {
+        final y = int.tryParse(v[0].toString());
+        final m = int.tryParse(v[1].toString());
+        final d = int.tryParse(v[2].toString());
+        if (y != null && m != null && d != null) return DateTime(y, m, d);
+      }
+      return null;
     }
 
+    int? _toIntOrNull(dynamic v) {
+      if (v == null) return null;
+      if (v is int) return v;
+      if (v is num) return v.toInt();
+      final s = v.toString().trim();
+      return s.isEmpty ? null : int.tryParse(s);
+    }
+
+    String? _toStringOrNull(dynamic v) {
+      if (v == null) return null;
+      final s = v.toString();
+      return s.isEmpty ? null : s;
+    }
+
+    // Status: utilise votre extension si dispo, sinon fallback simple
+    StatusCommande _parseStatus(dynamic v) {
+      try {
+        final s = v?.toString();
+        final parsed = StatusCommandeX.fromString(s);
+        if (parsed != null) return parsed;
+      } catch (_) {
+        /* ignore and fallback */
+      }
+      switch ((v ?? '').toString()) {
+        case 'VALIDE':
+          return StatusCommande.VALIDE;
+        case 'PRODUIS':
+          return StatusCommande.PRODUIS;
+        case 'EN_ATTENTE':
+          return StatusCommande.EN_ATTENTE;
+        default:
+          return StatusCommande.EN_ATTENTE;
+      }
+    }
+
+    // Champs pouvant manquer selon l’endpoint
+    final clientIdSafe = _toIntOrNull(j['clientId']) ?? 0;
+    final clientDiffuseurIdSafe =
+        _toIntOrNull(j['clientDiffuseurId']) ??
+        _toIntOrNull(j['clientDiffuseur']) ??
+        0;
+    final parfumIdSafe =
+        _toIntOrNull(j['parfumId']) ?? _toIntOrNull(j['parfum']);
+
     return CommandePotentielleRow(
-      id: j['id'] as int,
-      status: StatusCommandeX.fromString(j['status']),
+      id: (j['id'] as num).toInt(),
+      status: _parseStatus(j['status']),
       date: _parseDate(j['date']),
       bouteilleVide: (j['bouteilleVide'] as bool?) ?? false,
-      clientId: j['clientId'] as int,
-      clientNom: j['clientNom'] as String?,
-      telephone: j['telephone'] as String?,
-      clientDiffuseurId: j['clientDiffuseurId'] as int,
-      diffuseurCab: j['diffuseurCab'] as String?,
-      diffuseurDesignation: j['diffuseurDesignation'] as String?,
-      emplacement: j['emplacement'] as String?,
+
+      nbrBouteilles: _toIntOrNull(j['nbrBouteilles']),
+      quantite: _toIntOrNull(j['quantite']),
+      typeTete: _toStringOrNull(j['typeTete']),
+
+      clientId: clientIdSafe,
+      clientNom: _toStringOrNull(j['clientNom']),
+      telephone: _toStringOrNull(j['telephone']),
+
+      clientDiffuseurId: clientDiffuseurIdSafe,
+      diffuseurCab: _toStringOrNull(j['diffuseurCab']),
+      diffuseurDesignation: _toStringOrNull(j['diffuseurDesignation']),
+      emplacement: _toStringOrNull(j['emplacement']),
+
       datePlanification: _parseDate(j['datePlanification']),
-      parfumId: j['parfumId'] as int,
-      parfumNom: j['parfumNom'] as String?,
+      parfumId: parfumIdSafe,
+      parfumNom: _toStringOrNull(j['parfumNom']),
     );
   }
 
   Map<String, dynamic> toJson() => {
     'id': id,
-    'status': status.name, // same strings as backend
-    'date': date?.toIso8601String().split('T').first, // keep LocalDate format
+    'status': status.name,
+    'date': date?.toIso8601String().split('T').first,
     'bouteilleVide': bouteilleVide,
+    'nbrBouteilles': nbrBouteilles,
+    'quantite': quantite,
+    'typeTete': typeTete,
     'clientId': clientId,
     'clientNom': clientNom,
     'telephone': telephone,
@@ -110,10 +202,8 @@ class CommandePotentielleRow {
     'parfumNom': parfumNom,
   };
 
-  // Convenience: parse a list payload
+  /// Convenience: parse list payloads
   static List<CommandePotentielleRow> listFromJson(List<dynamic> arr) => arr
       .map((e) => CommandePotentielleRow.fromJson(e as Map<String, dynamic>))
       .toList();
 }
-
-/// Énumération statuts (avec fallback sûr)

@@ -112,7 +112,7 @@ class _AddDiffuseurForm extends StatelessWidget {
                         ),
                         const SizedBox(height: 16),
 
-                        _sectionTitle("Consommation (W)"),
+                        _sectionTitle("Consommation (ML/MIN)"),
                         const SizedBox(height: 8),
                         _textField(
                           controller: c.consommationCtrl,
