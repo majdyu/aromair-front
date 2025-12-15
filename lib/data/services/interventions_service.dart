@@ -10,6 +10,13 @@ import 'package:intl/intl.dart';
 class InterventionsService {
   final Dio _dio = buildDio();
 
+  String _fmtLocalDate(DateTime d) {
+    final y = d.year.toString().padLeft(4, '0');
+    final m = d.month.toString().padLeft(2, '0');
+    final day = d.day.toString().padLeft(2, '0');
+    return '$y-$m-$day';
+  }
+
   Future<List<InterventionItem>> list({
     required DateTime from,
     required DateTime to,
@@ -22,8 +29,8 @@ class InterventionsService {
     final resp = await _dio.get(
       "interventions/list",
       queryParameters: {
-        "from": from.toIso8601String(), // OK pour @DateTimeFormat ISO
-        "to": to.toIso8601String(),
+        "from": _fmtLocalDate(from),
+        "to": _fmtLocalDate(to),
         if (statut != null && statut != "ALL") "statut": statut,
         if (q != null && q.trim().isNotEmpty) "q": q.trim(),
       },

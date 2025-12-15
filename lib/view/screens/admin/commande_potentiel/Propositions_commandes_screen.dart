@@ -909,7 +909,7 @@ class _ElegantDetailRow extends StatelessWidget {
           _ElegantDetailItem(
             icon: Icons.scale_outlined,
             label: 'Quantité en ML',
-            value: '${commande.quantite ?? 0}', // 👈 ici
+            value: '${commande.quantite ?? 0}',
             color: Colors.teal,
           ),
           _ElegantDetailItem(

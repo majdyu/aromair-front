@@ -10,13 +10,15 @@ class InterventionsController extends GetxController {
     InterventionsService(),
   );
 
+  DateTime _onlyDate(DateTime d) => DateTime(d.year, d.month, d.day);
+
   // UI state
   final isLoading = false.obs;
   final error = RxnString();
   final items = <InterventionItem>[].obs;
 
   // Filtres
-  final from = DateTime.now().subtract(const Duration(days: 0)).obs;
+  final from = DateTime.now().obs;
   final to = DateTime.now().obs;
   final selectedStatut = "ALL".obs;
   final searchCtrl = TextEditingController();
@@ -48,9 +50,9 @@ class InterventionsController extends GetxController {
     error.value = null;
     try {
       final list = await repository.list(
-        from: from.value,
-        to: to.value,
-        statut: selectedStatut.value, // le service n’envoie rien si "ALL"
+        from: _onlyDate(from.value),
+        to: _onlyDate(to.value),
+        statut: selectedStatut.value,
         q: searchCtrl.text,
       );
       items.assignAll(list);

@@ -506,13 +506,12 @@ class TechnicienConsultationScreen extends StatelessWidget {
   }
 
   Widget _buildFinancialBreakdown(TechnicienConsultation t) {
-    final totalValue = t.recetteActuelle + t.caisseActuelle;
-    final recettePercentage = totalValue > 0
-        ? (t.recetteActuelle / totalValue * 100)
-        : 0;
-    final caissePercentage = totalValue > 0
-        ? (t.caisseActuelle / totalValue * 100)
-        : 0;
+    // Use absolute max to scale both bars symmetrically around zero
+    final maxAbs = [
+      t.recetteActuelle.abs(),
+      t.caisseActuelle.abs(),
+      1e-9, // avoid division by zero
+    ].reduce((a, b) => a > b ? a : b);
 
     return AromaCard(
       padding: const EdgeInsets.all(24),
@@ -550,115 +549,170 @@ class TechnicienConsultationScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 20),
-          Column(
-            children: [
-              // Recette Bar
-              _buildFinancialBar(
-                'Recette Générée',
-                _fmtMoney(t.recetteActuelle),
-                recettePercentage.toDouble(),
-                const Color(0xFF3B82F6),
-              ),
-              const SizedBox(height: 12),
-              // Caisse Bar
-              _buildFinancialBar(
-                'Caisse Actuelle',
-                _fmtMoney(t.caisseActuelle),
-                caissePercentage.toDouble(),
-                const Color(0xFFF59E0B),
-              ),
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade50,
-                  borderRadius: BorderRadius.circular(8),
+
+          // Recette (signed)
+          _buildFinancialBarSigned(
+            label: 'Recette Générée',
+            value: t.recetteActuelle,
+            maxAbs: maxAbs,
+            positiveColor: const Color(0xFF3B82F6),
+          ),
+          const SizedBox(height: 12),
+
+          // Caisse (signed)
+          _buildFinancialBarSigned(
+            label: 'Caisse Actuelle',
+            value: t.caisseActuelle,
+            maxAbs: maxAbs,
+            positiveColor: const Color(0xFFF59E0B),
+          ),
+
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade50,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Total',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Total',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    Text(
-                      _fmtMoney(totalValue),
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                  ],
+                Text(
+                  _fmtMoney(t.recetteActuelle + t.caisseActuelle),
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: (t.recetteActuelle + t.caisseActuelle) >= 0
+                        ? AppColors.primary
+                        : const Color(0xFFEF4444),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildFinancialBar(
-    String label,
-    String value,
-    double percentage,
-    Color color,
-  ) {
+  Widget _buildFinancialBarSigned({
+    required String label,
+    required double value, // can be negative
+    required double maxAbs, // > 0
+    required Color positiveColor,
+  }) {
+    final Color barColor = value >= 0 ? positiveColor : const Color(0xFFEF4444);
+    final String valueStr = _fmtMoney(value);
+    final double absRatio = (value.abs() / (maxAbs <= 0 ? 1 : maxAbs)).clamp(
+      0.0,
+      1.0,
+    );
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Header row
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
               label,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textPrimary,
               ),
             ),
             Text(
-              value,
+              valueStr,
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
-                color: color,
+                color: barColor,
               ),
             ),
           ],
         ),
         const SizedBox(height: 6),
-        Stack(
-          children: [
-            Container(
-              height: 8,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade200,
-                borderRadius: BorderRadius.circular(4),
-              ),
-            ),
-            Container(
-              height: 8,
-              width: percentage * 2, // keep original sizing assumption
-              decoration: BoxDecoration(
-                color: color,
-                borderRadius: BorderRadius.circular(4),
-              ),
-            ),
-          ],
+
+        // Bar with zero in the middle
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final totalW = constraints.maxWidth;
+            final halfW = totalW / 2;
+            final barW = (absRatio * halfW); // always >= 0
+
+            return Stack(
+              children: [
+                // background track
+                Container(
+                  height: 10,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade200,
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                ),
+
+                // zero baseline
+                Positioned(
+                  left: halfW - 1, // thin center line
+                  top: 0,
+                  bottom: 0,
+                  child: Container(width: 2, color: Colors.white),
+                ),
+
+                // signed bar (left for negative, right for positive)
+                if (value >= 0)
+                  Positioned(
+                    left: halfW,
+                    top: 0,
+                    bottom: 0,
+                    child: Container(
+                      width: barW,
+                      decoration: BoxDecoration(
+                        color: barColor,
+                        borderRadius: const BorderRadius.only(
+                          topRight: Radius.circular(5),
+                          bottomRight: Radius.circular(5),
+                        ),
+                      ),
+                    ),
+                  )
+                else
+                  Positioned(
+                    left: halfW - barW,
+                    top: 0,
+                    bottom: 0,
+                    child: Container(
+                      width: barW,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFEF4444),
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(5),
+                          bottomLeft: Radius.circular(5),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          },
         ),
+
         const SizedBox(height: 4),
         Align(
-          alignment: Alignment.centerRight,
+          alignment: Alignment.center,
           child: Text(
-            '${percentage.toStringAsFixed(1)}%',
-            style: TextStyle(
+            value >= 0 ? 'positif' : 'négatif',
+            style: const TextStyle(
               fontSize: 10,
               color: AppColors.textSecondary,
               fontWeight: FontWeight.w600,
@@ -1019,8 +1073,8 @@ class _RecettePreview extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _miniRow('Actuelle', '${d.actuelle.toStringAsFixed(3)} TND'),
-          _miniRow('Supposée', '${d.recetteSuppose.toStringAsFixed(3)} TND'),
-          _miniRow('Cultivée', '${d.recetteCultive.toStringAsFixed(3)} TND'),
+          _miniRow('Facturé', '${d.recetteSuppose.toStringAsFixed(3)} TND'),
+          _miniRow('Encaissé', '${d.recetteCultive.toStringAsFixed(3)} TND'),
           _miniRow('Reçue', '${d.recetteRecu.toStringAsFixed(3)} TND'),
           const SizedBox(height: 4),
           Align(

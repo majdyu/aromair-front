@@ -190,7 +190,7 @@ class _FinancialOverview extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: _FinancialCard(
-                  title: 'Supposée',
+                  title: 'Facturé',
                   amount: d.recetteSuppose,
                   icon: Icons.analytics_rounded,
                   color: AppColors.info,
@@ -205,7 +205,7 @@ class _FinancialOverview extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: _FinancialCard(
-                  title: 'Cultivée',
+                  title: 'Encaissé',
                   amount: d.recetteCultive,
                   icon: Icons.agriculture_rounded,
                   color: AppColors.success,
@@ -546,7 +546,7 @@ class _LineTile extends StatelessWidget {
             children: [
               Expanded(
                 child: _AmountCard(
-                  title: 'Montant Supposé',
+                  title: 'Montant Facturé',
                   amount: montantSuppose,
                   icon: Icons.analytics_rounded,
                   color: AppColors.info,
@@ -555,7 +555,7 @@ class _LineTile extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: _AmountCard(
-                  title: 'Montant Cultivé',
+                  title: 'Montant Encaissé',
                   amount: montantCultive,
                   icon: Icons.agriculture_rounded,
                   color: AppColors.success,
